@@ -49,8 +49,9 @@ def main(argv):
         keyword = args[1]
         if len(args) == 3:
             page_number = args[2]
-            crawler(keyword, page_number)
-        crawler(keyword)
+            print(crawler(keyword, page_number))
+        print(crawler(keyword))
+
     except getopt.GetoptError:
         #usage()
         #sys.exit(2)a
