@@ -16,9 +16,9 @@ COMPANY_URL = "http://www.shopping.com/products"
 
 def results_count(page):
     tree = html.fromstring(page.content)
-    upper = 100
+    upper = 50
     lower = 1
-    pivot = random.randint(1, 100)
+    pivot = random.randint(1, 50)
     while True:
         if len(tree.xpath(".//*[@id='nameQA%s']" % pivot)) > 0:
             if len(tree.xpath(".//*[@id='nameQA%s']" % (pivot + 1))) == 0:
@@ -45,7 +45,6 @@ def crawler(keyword, page_number=None):
 def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hg:d", ["help", "grammar="])
-        print(opts, args)
         keyword = args[1]
         if len(args) == 3:
             page_number = args[2]
