@@ -27,9 +27,16 @@ class Node:
             self.distance += 10
 
     def estimate(self, xDest, yDest):
-        xd = yd = d = 0
         xd = xDest - self.xPos
         yd = yDest - self.yPos
 
         #Euclidean Distance
-                              d=static_cast<int>(sqrt(xd*xd+yd*yd));
+        return int(math.sqrt( xd*xd + yd*yd )
+
+
+def operator(a, b):
+    return a.priority > b.priority
+
+
+def pathFind(xStart, yStart, xFinish, yFinish):
+    pass
