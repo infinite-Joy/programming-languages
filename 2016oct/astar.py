@@ -44,8 +44,10 @@ class Node:
         else:
             self.distance += 10
 
-    # Estimation function for the remaining distance to the goal.
     def estimate(self, xDest, yDest):
+        """
+        Estimation function for the remaining distance to the goal.
+        """
         xd = xDest - self.x_position
         yd = yDest - self.y_position
         # Euclidian Distance
