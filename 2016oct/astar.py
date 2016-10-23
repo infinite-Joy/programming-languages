@@ -15,6 +15,9 @@ except NameError:
     pass
 
 class Node:
+    """
+    for handling the individual nodes or spaces in the given map
+    """
 
     def __init__(self, x_position, y_position, distance, priority):
         self.x_position = x_position
@@ -57,7 +60,8 @@ class Node:
         return d
 
 
-def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map, possible_directions, dx, dy, xA, yA, xB, yB):
+def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
+             possible_directions, dx, dy, xA, yA, xB, yB):
     """
     A-star algorithm. The path returned will be a string of digits of direction
     """
@@ -74,21 +78,22 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map, possible_dir
     pq = [[], []]  # priority queues of open (not-yet-tried) nodes
     pqi = 0  # priority queue index
     # create the start node and push into list of open nodes
-    n0 = Node(xA, yA, 0, 0)
-    n0.updatePriority(xB, yB)
-    heappush(pq[pqi], n0)
-    open_nodes_map[yA][xA] = n0.priority  # mark it on the open nodes map
+    node = Node(xA, yA, 0, 0)
+    node.updatePriority(xB, yB)
+    heappush(pq[pqi], node)
+    open_nodes_map[yA][xA] = node.priority  # mark it on the open nodes map
     # A* search
     while len(pq[pqi]) > 0:
-        # get the current node w/ the highest priority from the list of open nodes
-        n1 = pq[pqi][0]  # top node
-        n0 = Node(n1.x_position, n1.y_position, n1.distance, n1.priority)
-        x = n0.x_position
-        y = n0.y_position
+        # get the current node with the highest priority
+        # from the list of open nodes
+        top_node = pq[pqi][0]
+        node = Node(top_node.x_position, top_node.y_position, top_node.distance, top_node.priority)
+        x = node.x_position
+        y = node.y_position
         heappop(pq[pqi])  # remove the node from the open list
         open_nodes_map[y][x] = 0
         closed_nodes_map[y][x] = 1  # mark it on the closed nodes map
-        # quit searching when the goal is reached if n0.estimate(xB, yB) == 0:
+        # quit searching when the goal is reached if node.estimate(xB, yB) == 0:
         if x == xB and y == yB:
             # generate the path from finish to start by following the possible_directions
             path = ''
@@ -107,7 +112,7 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map, possible_dir
                     or the_map[ydy][xdx] == 1 or
                     closed_nodes_map[ydy][xdx] == 1):
                 # generate a child node
-                m0 = Node(xdx, ydy, n0.distance, n0.priority)
+                m0 = Node(xdx, ydy, node.distance, node.priority)
                 m0.nextMove(possible_directions, i)
                 m0.updatePriority(xB, yB)
                 # if it is not in the open list then add into that
