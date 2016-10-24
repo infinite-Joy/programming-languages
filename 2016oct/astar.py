@@ -3,7 +3,7 @@
 # http://en.wikipedia.org/wiki/A*
 """
 from __future__ import print_function
-from heapq import heappush, heappop # for priority queue
+from heapq import heappush, heappop  # for priority queue
 import math
 import time
 import random
@@ -13,6 +13,7 @@ try:
     input = raw_input
 except NameError:
     pass
+
 
 class Node:
     """
@@ -60,6 +61,24 @@ class Node:
         return d
 
 
+def a_chosen_direction(x, possible_directions):
+    return (x + possible_directions // 2) % possible_directions
+
+
+def generate_path(possible_directions, dir_map, dx, dy, xA, yA, x, y):
+    """
+    generate the path from finish to start by following the possible_directions
+    """
+    path = ""
+    while not (x == xA and y == yA):
+        j = dir_map[y][x]
+        c = str(a_chosen_direction(j, possible_directions))
+        path = c + path
+        x += dx[j]
+        y += dy[j]
+    return path
+
+
 def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
              possible_directions, dx, dy, xA, yA, xB, yB):
     """
@@ -87,29 +106,26 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
         # get the current node with the highest priority
         # from the list of open nodes
         top_node = pq[pqi][0]
-        node = Node(top_node.x_position, top_node.y_position, top_node.distance, top_node.priority)
+        node = Node(top_node.x_position, top_node.y_position,
+                    top_node.distance, top_node.priority)
         x = node.x_position
         y = node.y_position
         heappop(pq[pqi])  # remove the node from the open list
         open_nodes_map[y][x] = 0
         closed_nodes_map[y][x] = 1  # mark it on the closed nodes map
+
         # quit searching when the goal is reached if node.estimate(xB, yB) == 0:
         if x == xB and y == yB:
-            # generate the path from finish to start by following the possible_directions
-            path = ''
-            while not (x == xA and y == yA):
-                j = dir_map[y][x]
-                c = str((j + possible_directions // 2) % possible_directions)
-                path = c + path
-                x += dx[j]
-                y += dy[j]
-            return path
+            return generate_path(possible_directions, dir_map,
+                                 dx, dy, xA, yA, x, y)
+
         # generate moves (child nodes) in all possible possible_directions
         for i in range(possible_directions):
             xdx = x + dx[i]
             ydy = y + dy[i]
-            if not (xdx < 0 or xdx > horizontal_size_of_map - 1 or ydy < 0 or ydy > vertical_size_of_map - 1
-                    or the_map[ydy][xdx] == 1 or
+            if not (xdx < 0 or xdx > horizontal_size_of_map - 1 or
+                    ydy < 0 or ydy > vertical_size_of_map - 1 or
+                    the_map[ydy][xdx] == 1 or
                     closed_nodes_map[ydy][xdx] == 1):
                 # generate a child node
                 m0 = Node(xdx, ydy, node.distance, node.priority)
@@ -120,12 +136,12 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
                     open_nodes_map[ydy][xdx] = m0.priority
                     heappush(pq[pqi], m0)
                     # mark its parent node direction
-                    dir_map[ydy][xdx] = (i + possible_directions // 2) % possible_directions
+                    dir_map[ydy][xdx] = a_chosen_direction(i, possible_directions=possible_directions)
                 elif open_nodes_map[ydy][xdx] > m0.priority:
                     # update the priority
                     open_nodes_map[ydy][xdx] = m0.priority
                     # update the parent direction
-                    dir_map[ydy][xdx] = (i + possible_directions // 2) % possible_directions
+                    dir_map[ydy][xdx] = a_chosen_direction(i, possible_directions=possible_directions)
                     # replace the node by emptying one pq to the other one
                     # except the node to be replaced will be ignored and
                     # the new node will be pushed in instead
