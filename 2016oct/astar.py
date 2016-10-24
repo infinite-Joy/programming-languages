@@ -33,6 +33,18 @@ class Node:
         """
         return self.priority < other.priority
 
+    def estimate(self, xDest, yDest):
+        """
+        Estimation function for the remaining distance to the goal.
+        """
+        dx = xDest - self.x_position
+        dy = yDest - self.y_position
+        # Euclidian Distance
+        d = math.sqrt(dx ** 2 + dy ** 2)
+        # Manhattan distance: d = abs(xd) + abs(yd)
+        # Chebyshev distance: d = max(abs(xd), abs(yd))
+        return d
+
     def updatePriority(self, xDest, yDest):
         """
         employs the a-star heuristic
@@ -48,18 +60,6 @@ class Node:
             self.distance += 14
         else:
             self.distance += 10
-
-    def estimate(self, xDest, yDest):
-        """
-        Estimation function for the remaining distance to the goal.
-        """
-        dx = xDest - self.x_position
-        dy = yDest - self.y_position
-        # Euclidian Distance
-        d = math.sqrt(dx ** 2 + dy ** 2)
-        # Manhattan distance: d = abs(xd) + abs(yd)
-        # Chebyshev distance: d = max(abs(xd), abs(yd))
-        return d
 
 
 def a_chosen_direction(x, possible_directions):
@@ -97,11 +97,6 @@ def collision_with_obstacle(x_y_shift, the_map, closed_nodes_map):
         closed_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 1))
 
 
-class GameMap:
-    def __init__(self):
-        pass
-
-
 def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
              possible_directions, dx, dy, xA, yA, xB, yB):
     """
@@ -117,23 +112,23 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
         open_nodes_map.append(list(row))
         dir_map.append(list(row))
 
-    pq = [[], []]  # priority queues of open (not-yet-tried) nodes
-    pqi = 0  # priority queue index
+    priority_queues = [[], []]  # priority queues of open (not-yet-tried) nodes
+    priority_queue_indx = 0
     # create the start node and push into list of open nodes
     node = Node(xA, yA, 0, 0)
     node.updatePriority(xB, yB)
-    heappush(pq[pqi], node)
+    heappush(priority_queues[priority_queue_indx], node)
     open_nodes_map[yA][xA] = node.priority  # mark it on the open nodes map
     # A* search
-    while len(pq[pqi]) > 0:
+    while len(priority_queues[priority_queue_indx]) > 0:
         # get the current node with the highest priority
         # from the list of open nodes
-        top_node = pq[pqi][0]
+        top_node = priority_queues[priority_queue_indx][0]
         node = Node(top_node.x_position, top_node.y_position,
                     top_node.distance, top_node.priority)
         x = node.x_position
         y = node.y_position
-        heappop(pq[pqi])  # remove the node from the open list
+        heappop(priority_queues[priority_queue_indx])  # remove the node from the open list
         open_nodes_map[y][x] = 0
         closed_nodes_map[y][x] = 1  # mark it on the closed nodes map
 
@@ -144,44 +139,44 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
                                  node.x_position, node.y_position)
 
         # generate moves (child nodes) in all possible possible_directions
-        for i in range(possible_directions):
-            change_in_x = node.x_position + dx[i]
-            change_in_y = node.y_position + dy[i]
+        for direction in range(possible_directions):
+            change_in_x = node.x_position + dx[direction]
+            change_in_y = node.y_position + dy[direction]
             x_y_shift = Shift(change_in_x, change_in_y)
             if not (outside_map(x_y_shift, horizontal_size_of_map, vertical_size_of_map) or
                     collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)):
                 # generate a child node
                 child_node = Node(x_y_shift.change_in_x, x_y_shift.change_in_y, node.distance, node.priority)
-                child_node.nextMove(possible_directions, i)
+                child_node.nextMove(possible_directions, direction)
                 child_node.updatePriority(xB, yB)
                 # if it is not in the open list then add into that
                 if open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 0:
                     open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
-                    heappush(pq[pqi], child_node)
+                    heappush(priority_queues[priority_queue_indx], child_node)
                     # mark its parent node direction
-                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(i, possible_directions=possible_directions)
+                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(direction, possible_directions=possible_directions)
                 elif open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] > child_node.priority:
                     # update the priority
                     open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
                     # update the parent direction
-                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(i, possible_directions=possible_directions)
-                    # replace the node by emptying one pq to the other one
+                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(direction, possible_directions=possible_directions)
+                    # replace the node by emptying one priority_queues to the other one
                     # except the node to be replaced will be ignored and
                     # the new node will be pushed in instead
-                    while not (pq[pqi][0].x_position == x_y_shift.change_in_x and
-                               pq[pqi][0].y_position == x_y_shift.change_in_y):
-                        heappush(pq[1 - pqi], pq[pqi][0])
-                        heappop(pq[pqi])
-                    heappop(pq[pqi]) # remove the target node
+                    while not (priority_queues[priority_queue_indx][0].x_position == x_y_shift.change_in_x and
+                               priority_queues[priority_queue_indx][0].y_position == x_y_shift.change_in_y):
+                        heappush(priority_queues[1 - priority_queue_indx], priority_queues[priority_queue_indx][0])
+                        heappop(priority_queues[priority_queue_indx])
+                    heappop(priority_queues[priority_queue_indx]) # remove the target node
                     # empty the larger size priority queue
                     # to the smaller one
-                    if len(pq[pqi]) > len(pq[1 - pqi]):
-                        pqi = 1 - pqi
-                    while len(pq[pqi]) > 0:
-                        heappush(pq[1-pqi], pq[pqi][0])
-                        heappop(pq[pqi])
-                    pqi = 1 - pqi
-                    heappush(pq[pqi], child_node) # add the better node instead
+                    if len(priority_queues[priority_queue_indx]) > len(priority_queues[1 - priority_queue_indx]):
+                        priority_queue_indx = 1 - priority_queue_indx
+                    while len(priority_queues[priority_queue_indx]) > 0:
+                        heappush(priority_queues[1-priority_queue_indx], priority_queues[priority_queue_indx][0])
+                        heappop(priority_queues[priority_queue_indx])
+                    priority_queue_indx = 1 - priority_queue_indx
+                    heappush(priority_queues[priority_queue_indx], child_node) # add the better node instead
     return '' # if no route found
 
 

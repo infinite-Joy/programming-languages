@@ -79,7 +79,10 @@ def test_outside_map():
 
 def test_collision_with_obstacle():
     the_map = [[0, 1], [0, 1]]
-    closed_nodes_map = [[1, 0], [1, 0]]
     x_y_shift = Shift(1, 0)
+    # game_map = GameMap(2, 2)
+    # game_map.closed_nodes_map = [[1, 0], [1, 0]]
+    closed_nodes_map = [[1, 0], [1, 0]]
+    #assert collision_with_obstacle(x_y_shift, the_map, game_map)
     assert collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)
 
