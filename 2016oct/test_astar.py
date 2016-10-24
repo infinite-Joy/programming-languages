@@ -1,5 +1,6 @@
 from astar import Node, pathFind, a_chosen_direction, \
-    generate_path, map_overflow
+    generate_path, outside_map, collision_with_obstacle, \
+    Shift
 
 
 def test_Node_init():
@@ -70,7 +71,15 @@ def test_generate_path():
     assert res == "11"
 
 
-def test_map_overflow():
-    res = map_overflow(change_in_x=30, change_in_y=30,
-                       horizontal_size_of_map=30, vertical_size_of_map=30)
+def test_outside_map():
+    x_y_shift = Shift(30, 30)
+    res = outside_map(x_y_shift, horizontal_size_of_map=30, vertical_size_of_map=30)
     assert res
+
+
+def test_collision_with_obstacle():
+    the_map = [[0, 1], [0, 1]]
+    closed_nodes_map = [[1, 0], [1, 0]]
+    x_y_shift = Shift(1, 0)
+    assert collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)
+

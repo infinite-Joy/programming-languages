@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 # A* Shortest Path Algorithm
 # http://en.wikipedia.org/wiki/A*
@@ -79,6 +80,28 @@ def generate_path(possible_directions, dir_map, dx, dy, xA, yA, x, y):
     return path
 
 
+def outside_map(x_y_shift,
+        horizontal_size_of_map, vertical_size_of_map):
+    return any((x_y_shift.change_in_x < 0, x_y_shift.change_in_y < 0,
+        x_y_shift.change_in_x > horizontal_size_of_map - 1,
+        x_y_shift.change_in_y > vertical_size_of_map - 1))
+
+class Shift:
+    def __init__(self, x, y):
+        self.change_in_x = x
+        self.change_in_y = y
+      
+
+def collision_with_obstacle(x_y_shift, the_map, closed_nodes_map):
+    return any((the_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 1,
+        closed_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 1))
+
+
+class GameMap:
+    def __init__(self):
+        pass
+
+
 def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
              possible_directions, dx, dy, xA, yA, xB, yB):
     """
@@ -122,32 +145,31 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
 
         # generate moves (child nodes) in all possible possible_directions
         for i in range(possible_directions):
-            xdx = node.x_position + dx[i]
-            ydy = node.y_position + dy[i]
-            if not (xdx < 0 or xdx > horizontal_size_of_map - 1 or
-                    ydy < 0 or ydy > vertical_size_of_map - 1 or
-                    the_map[ydy][xdx] == 1 or
-                    closed_nodes_map[ydy][xdx] == 1):
+            change_in_x = node.x_position + dx[i]
+            change_in_y = node.y_position + dy[i]
+            x_y_shift = Shift(change_in_x, change_in_y)
+            if not (outside_map(x_y_shift, horizontal_size_of_map, vertical_size_of_map) or
+                    collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)):
                 # generate a child node
-                m0 = Node(xdx, ydy, node.distance, node.priority)
-                m0.nextMove(possible_directions, i)
-                m0.updatePriority(xB, yB)
+                child_node = Node(x_y_shift.change_in_x, x_y_shift.change_in_y, node.distance, node.priority)
+                child_node.nextMove(possible_directions, i)
+                child_node.updatePriority(xB, yB)
                 # if it is not in the open list then add into that
-                if open_nodes_map[ydy][xdx] == 0:
-                    open_nodes_map[ydy][xdx] = m0.priority
-                    heappush(pq[pqi], m0)
+                if open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 0:
+                    open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
+                    heappush(pq[pqi], child_node)
                     # mark its parent node direction
-                    dir_map[ydy][xdx] = a_chosen_direction(i, possible_directions=possible_directions)
-                elif open_nodes_map[ydy][xdx] > m0.priority:
+                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(i, possible_directions=possible_directions)
+                elif open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] > child_node.priority:
                     # update the priority
-                    open_nodes_map[ydy][xdx] = m0.priority
+                    open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
                     # update the parent direction
-                    dir_map[ydy][xdx] = a_chosen_direction(i, possible_directions=possible_directions)
+                    dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(i, possible_directions=possible_directions)
                     # replace the node by emptying one pq to the other one
                     # except the node to be replaced will be ignored and
                     # the new node will be pushed in instead
-                    while not (pq[pqi][0].x_position == xdx and
-                               pq[pqi][0].y_position == ydy):
+                    while not (pq[pqi][0].x_position == x_y_shift.change_in_x and
+                               pq[pqi][0].y_position == x_y_shift.change_in_y):
                         heappush(pq[1 - pqi], pq[pqi][0])
                         heappop(pq[pqi])
                     heappop(pq[pqi]) # remove the target node
@@ -159,7 +181,7 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
                         heappush(pq[1-pqi], pq[pqi][0])
                         heappop(pq[pqi])
                     pqi = 1 - pqi
-                    heappush(pq[pqi], m0) # add the better node instead
+                    heappush(pq[pqi], child_node) # add the better node instead
     return '' # if no route found
 
 
