@@ -21,11 +21,13 @@ class Node:
     for handling the individual nodes or spaces in the given map
     """
 
-    def __init__(self, x_position, y_position, distance, priority):
+    def __init__(self, x_position, y_position,
+                 distance, priority, possible_directions):
         self.x_position = x_position
         self.y_position = y_position
         self.distance = distance
         self.priority = priority
+        self.possible_directions = possible_directions
 
     def __lt__(self, other):
         """
@@ -51,12 +53,12 @@ class Node:
         """
         self.priority = self.distance + self.estimate(xDest, yDest) * 10
 
-    def nextMove(self, possible_directions, d):
+    def nextMove(self, d):
         """
         give higher priority to going straight instead of diagonally
         d: direction to move
         """
-        if possible_directions == 8 and d % 2 != 0:
+        if self.possible_directions == 8 and d % 2 != 0:
             self.distance += 14
         else:
             self.distance += 10
@@ -86,15 +88,31 @@ def outside_map(x_y_shift,
         x_y_shift.change_in_x > horizontal_size_of_map - 1,
         x_y_shift.change_in_y > vertical_size_of_map - 1))
 
+
 class Shift:
+    """
+    x -> change in x
+    y -> change in y
+    """
     def __init__(self, x, y):
         self.change_in_x = x
         self.change_in_y = y
-      
+
 
 def collision_with_obstacle(x_y_shift, the_map, closed_nodes_map):
     return any((the_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 1,
         closed_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 1))
+
+
+def generate_a_child_node(x_y_shift, node, direction, finish_coord):
+    child_node = Node(x_y_shift.change_in_x, x_y_shift.change_in_y,
+                      node.distance, node.priority,
+                      node.possible_directions)
+    child_node.nextMove(direction)
+    xB, yB = finish_coord
+    child_node.updatePriority(xB, yB)
+    return child_node
+
 
 
 def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
@@ -102,6 +120,8 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
     """
     A-star algorithm. The path returned will be a string of digits of direction
     """
+    finish_coord = (xB, yB)
+    start_coord = (xA, yA)
     closed_nodes_map = []  # map of closed (tried-out) nodes
     open_nodes_map = []  # map of open (not-yet-tried) nodes
     dir_map = []  # map of possible_directions
@@ -115,7 +135,7 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
     priority_queues = [[], []]  # priority queues of open (not-yet-tried) nodes
     priority_queue_indx = 0
     # create the start node and push into list of open nodes
-    node = Node(xA, yA, 0, 0)
+    node = Node(xA, yA, 0, 0, possible_directions=possible_directions)
     node.updatePriority(xB, yB)
     heappush(priority_queues[priority_queue_indx], node)
     open_nodes_map[yA][xA] = node.priority  # mark it on the open nodes map
@@ -125,7 +145,8 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
         # from the list of open nodes
         top_node = priority_queues[priority_queue_indx][0]
         node = Node(top_node.x_position, top_node.y_position,
-                    top_node.distance, top_node.priority)
+                    top_node.distance, top_node.priority,
+                    possible_directions=possible_directions)
         x = node.x_position
         y = node.y_position
         heappop(priority_queues[priority_queue_indx])  # remove the node from the open list
@@ -145,10 +166,8 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
             x_y_shift = Shift(change_in_x, change_in_y)
             if not (outside_map(x_y_shift, horizontal_size_of_map, vertical_size_of_map) or
                     collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)):
-                # generate a child node
-                child_node = Node(x_y_shift.change_in_x, x_y_shift.change_in_y, node.distance, node.priority)
-                child_node.nextMove(possible_directions, direction)
-                child_node.updatePriority(xB, yB)
+                child_node = generate_a_child_node(x_y_shift, node,
+                                                   direction, finish_coord)
                 # if it is not in the open list then add into that
                 if open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 0:
                     open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
