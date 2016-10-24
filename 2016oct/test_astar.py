@@ -1,5 +1,5 @@
 from astar import Node, pathFind, a_chosen_direction, \
-    generate_path
+    generate_path, map_overflow
 
 
 def test_Node_init():
@@ -68,3 +68,9 @@ def test_generate_path():
     dy = [0, 1, 1, 1, 0, -1, -1, -1]
     res = generate_path(possible_directions, dir_map, dx, dy, xA, yA, x, y)
     assert res == "11"
+
+
+def test_map_overflow():
+    res = map_overflow(change_in_x=30, change_in_y=30,
+                       horizontal_size_of_map=30, vertical_size_of_map=30)
+    assert res

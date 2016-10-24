@@ -115,14 +115,15 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
         closed_nodes_map[y][x] = 1  # mark it on the closed nodes map
 
         # quit searching when the goal is reached if node.estimate(xB, yB) == 0:
-        if x == xB and y == yB:
+        if node.x_position == xB and node.y_position == yB:
             return generate_path(possible_directions, dir_map,
-                                 dx, dy, xA, yA, x, y)
+                                 dx, dy, xA, yA,
+                                 node.x_position, node.y_position)
 
         # generate moves (child nodes) in all possible possible_directions
         for i in range(possible_directions):
-            xdx = x + dx[i]
-            ydy = y + dy[i]
+            xdx = node.x_position + dx[i]
+            ydy = node.y_position + dy[i]
             if not (xdx < 0 or xdx > horizontal_size_of_map - 1 or
                     ydy < 0 or ydy > vertical_size_of_map - 1 or
                     the_map[ydy][xdx] == 1 or
