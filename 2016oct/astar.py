@@ -129,15 +129,16 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
     """
     finish_coord = (xB, yB)
     start_coord = (xA, yA)
-    closed_nodes_map = []  # map of closed (tried-out) nodes
-    open_nodes_map = []  # map of open (not-yet-tried) nodes
-    dir_map = []  # map of possible_directions
     row = [0] * horizontal_size_of_map
 
-    for i in range(vertical_size_of_map):  # create 2d arrays
-        closed_nodes_map.append(list(row))
-        open_nodes_map.append(list(row))
-        dir_map.append(list(row))
+    # map of closed (tried-out) nodes
+    closed_nodes_map = [list(row) for _ in range(vertical_size_of_map)]
+
+    # map of open (not-yet-tried) nodes
+    open_nodes_map = [list(row) for _ in range(vertical_size_of_map)]
+
+    # map of possible_directions
+    dir_map = [list(row) for _ in range(vertical_size_of_map)]
 
     priority_queues = [[], []]  # priority queues of open (not-yet-tried) nodes
     priority_queue_indx = 0
@@ -175,17 +176,20 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
                     collision_with_obstacle(x_y_shift, the_map, closed_nodes_map)):
                 child_node = generate_a_child_node(x_y_shift, node,
                                                    direction, finish_coord)
+
                 # if it is not in the open list then add into that
                 if open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] == 0:
                     open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
                     heappush(priority_queues[priority_queue_indx], child_node)
                     # mark its parent node direction
                     dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(direction, possible_directions=possible_directions)
+
                 elif open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] > child_node.priority:
                     # update the priority
                     open_nodes_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = child_node.priority
                     # update the parent direction
                     dir_map[x_y_shift.change_in_y][x_y_shift.change_in_x] = a_chosen_direction(direction, possible_directions=possible_directions)
+
                     # replace the node by emptying one priority_queues to the other one
                     # except the node to be replaced will be ignored and
                     # the new node will be pushed in instead
@@ -194,6 +198,7 @@ def pathFind(the_map, horizontal_size_of_map, vertical_size_of_map,
                         heappush(priority_queues[1 - priority_queue_indx], priority_queues[priority_queue_indx][0])
                         heappop(priority_queues[priority_queue_indx])
                     heappop(priority_queues[priority_queue_indx]) # remove the target node
+
                     # empty the larger size priority queue
                     # to the smaller one
                     if len(priority_queues[priority_queue_indx]) > len(priority_queues[1 - priority_queue_indx]):
@@ -215,8 +220,8 @@ if __name__ == "__main__":
         dx = [1, 1, 0, -1, -1, -1, 0, 1]
         dy = [0, 1, 1, 1, 0, -1, -1, -1]
 
-    horizontal_size_of_map = 30
-    vertical_size_of_map = 30
+    horizontal_size_of_map = 100
+    vertical_size_of_map = 100
     the_map = []
     row = [0] * horizontal_size_of_map
     for i in range(vertical_size_of_map): # create empty map
@@ -260,7 +265,6 @@ if __name__ == "__main__":
             y += dy[j]
             the_map[y][x] = 3
         the_map[y][x] = 4
-        r
 
     # display the map with the route added
     print('Map:')
