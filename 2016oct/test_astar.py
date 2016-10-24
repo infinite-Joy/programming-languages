@@ -4,7 +4,8 @@ from astar import Node, pathFind, a_chosen_direction, \
 
 
 def test_Node_init():
-    node = Node(1, 2, 3, 4, 5)
+    coordinates = [1,2]
+    node = Node(coordinates, 3, 4, 5)
     assert node.x_position == 1
     assert node.y_position == 2
     assert node.distance == 3
@@ -12,32 +13,36 @@ def test_Node_init():
 
 
 def test_comparison_method():
-    node = Node(1, 2, 3, 4, 5)
-    node1 = Node(1, 2, 3, 5, 5)
+    coordinates = [1,2]
+    node = Node(coordinates, 3, 4, 5)
+    node1 = Node(coordinates, 3, 5, 5)
     assert node < node1
-    node2 = Node(1, 2, 3, 3, 5)
+    node2 = Node(coordinates, 3, 3, 5)
     assert node > node2
 
 
 def test_node_estimate():
-    node = Node(1, 2, 3, 4, 5)
+    coordinates = [1,2]
+    node = Node(coordinates, 3, 4, 5)
     dnode = node.estimate(4, 6)
     assert dnode == 5
 
 
 def test_node_updatePriority():
-    node = Node(1, 2, 3, 4, 5)
+    coordinates = [1,2]
+    node = Node(coordinates, 3, 4, 5)
     node.updatePriority(4, 6)
     assert node.priority == 53
 
 
 def test_node_nextMove():
-    node = Node(1, 2, 3, 4, 5)
+    coordinates = [1,2]
+    node = Node(coordinates, 3, 4, 5)
     node.nextMove(1)
     assert node.distance == 13
     node.nextMove(2)
     assert node.distance == 23
-    node = Node(1, 2, 3, 4, 8)
+    node = Node(coordinates, 3, 4, 8)
     node.nextMove(1)
     assert node.distance == 17
 
@@ -89,7 +94,8 @@ def test_collision_with_obstacle():
 
 
 def test_generate_a_child_node():
-    node = Node(1,2,3,4,8)
+    c = [1,2]
+    node = Node(c,3,4,8)
     x_y_shift = Shift(1,1)
     direction = 1
     finish_coord = (2,2)
