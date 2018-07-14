@@ -1,0 +1,6 @@
+[package]
+name = "fahrenheit_celsius_converter"
+version = "0.1.0"
+authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
+
+[dependencies]
