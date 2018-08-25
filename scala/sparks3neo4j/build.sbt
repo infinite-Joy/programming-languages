@@ -24,6 +24,9 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-streaming" % "2.3.0" % "provided",
       "org.apache.spark" %% "spark-sql" % "2.3.0" % "provided",
+      "com.amazonaws" %% "aws-java-sdk" % "1.7.4",
+      "ch.cern.hadoop" %% "hadoop-aws" % "2.7.5.1",
+      "neo4j-contrib" %% "neo4j-spark-connector" % "2.1.0-M4",
 
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
