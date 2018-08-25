@@ -26,7 +26,7 @@ object CSVNeo4J extends App{
 }
 
 object Runner {
-  def run(conf: SparkConf, inputFile: String, outputFile: String): Unit = {
+  def run(conf: SparkConf): Unit = {
     val sc = new SparkContext(conf)
 
     // Create the rdd of the s3 csv data.
