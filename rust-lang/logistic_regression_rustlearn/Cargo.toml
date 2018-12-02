@@ -5,3 +5,4 @@ authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
 
 [dependencies]
 rustlearn = "0.3.0"
+bincode = "1.0.1"
