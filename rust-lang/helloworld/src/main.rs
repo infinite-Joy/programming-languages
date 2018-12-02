@@ -1,5 +1,32 @@
 use std::ops:: Add;
 
+fn index<T: PartialEq>(slice: &[T], target: &T) -> Option<usize> {
+    for (index, element) in slice.iter().enumerate() {
+        if element == target {
+            return Some(index)
+        }
+    }
+    None
+}
+
+fn min_max(slice: &[i32]) -> Option<(i32, i32)> {
+    if slice.is_empty() {
+        return None;
+    }
+    let mut min = slice[0];
+    let mut max = slice[0];
+    for &element in slice {
+        if element < min {
+            min = element;
+        }
+        if element > max {
+            max = element;
+        }
+    }
+    Some((min, max))
+    
+}
+
 fn first<T>(slice: &[T]) -> &T {
     &slice[0]
 
@@ -13,10 +40,10 @@ fn max<T: PartialOrd>(a: T, b: T) -> T {
     }
 }
 
-enum Option<T> {
-    Some(T),
-    None,
-}
+//enum Option<T> {
+//    Some(T),
+//    None,
+//}
 
 trait BitSet {
     fn clear(&mut self, index: usize);
@@ -225,12 +252,14 @@ fn main() {
     println!("first of the array {}", first(&array[2..]));
 
     println!("for loops");
-    let array: [i16; 4] = [1, 2, 3, 4];
+    let array = [1, 2, 3, 4];
     let mut sum = 0;
     for element in &array {
         sum += *element;
     }
     println!("Sum: {}", sum);
+
+    println!("min max: {:#?}", min_max(&array));
 
 
 
