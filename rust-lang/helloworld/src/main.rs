@@ -1,3 +1,26 @@
+enum Expr {
+    Null,
+    Add(i32, i32),
+    Sub(i32, i32),
+    Mul(i32, i32),
+    Div{ dividend: i32, divisor: i32},
+    Val(i32),
+
+}
+
+fn print_expr(expr: Expr) {
+    match expr {
+        Expr::Null => println!("No Value"),
+        Expr::Add(x, y) => println!("{}", x + y),
+        Expr::Sub(x, y) => println!("{}", x - y),
+        Expr::Mul(x, y) => println!("{}", x * y),
+        Expr::Div{dividend: x, divisor: 0} => println!("Divisor is 0"),
+        Expr::Div{dividend: x, divisor: y} => println!("{}", x/y),
+        Expr::Val(x) => println!("{}", x),
+    }
+    
+}
+
 fn inc_x(point: &mut Point) {
     point.x += 1;
 }
@@ -85,6 +108,15 @@ fn main() {
     let point = Point { x: 24, y: 42 };
     println!("({}, {})", point.x, point.y);
     println!("Distance from origin {}", point.distance_from_origin());
+
+    // tuples
+    let tuple = (24, 42);
+    println!("({} {})", tuple.0, tuple.1);
+    let (hello, world) = "helloworld".split_at(5);
+    println!("{} {}!", hello, world);
+
+    let quotient = Expr::Div{ dividend: 10, divisor: 2 };
+    let sum = Expr::Add(40, 2);
 
 
 }
