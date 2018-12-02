@@ -5,10 +5,38 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture, TextureCreator};
-use std::time::Duration;
+use sdl2::video::{Window, WindowContext};
+
+use std::time::{ Duration, SystemTime };
 use std::thread::sleep;
 
 const TEXTURE_SIZE: u32 = 32;
+
+#[derive(Clone, Copy)]
+enum TextureColor {
+    Green,
+    RosyBrown,
+}
+
+fn create_texture_rect<'a>(canvas: &mut Canvas<Window>,
+                           texture_creator: &'a TextureCreator<WindowContext>,
+                           color: TextureColor, size: u32) -> Option<Texture<'a>> {
+    // We will want handle failures outside of this function.
+    if let Ok(mut square_texture) =
+        texture_creator.create_texture_target(None, size, size) {
+            canvas.with_texture_canvas(&mut square_texture, |texture| {
+                match color {
+                    TextureColor::Green => texture.set_draw_color(Color::RGB(0, 255, 0)),
+                    TextureColor::RosyBrown => texture.set_draw_color(Color::RGB(188,143,143)),
+                }
+                texture.clear();
+        }).expect("Failed to color a texture");
+            Some(square_texture)
+    } else {
+        None
+    }
+}
+    
 
 pub fn main() {
     let sdl_context = sdl2::init().expect("SDL initialization failed");
@@ -27,18 +55,19 @@ pub fn main() {
 
     let tecture_creator: TextureCreator<_> = canvas.texture_creator();
 
-    let mut square_texture: Texture = tecture_creator
-        .create_texture_target(None, TEXTURE_SIZE, TEXTURE_SIZE)
+    let green_square = create_texture_rect(&mut canvas,
+                                           &tecture_creator,
+                                           TextureColor::Green,
+                                           TEXTURE_SIZE)
         .expect("Failed to create a texture");
 
-    //canvas.set_draw_color(Color::RGB(0, 255, 0));
-    //canvas.clear();
-    //canvas.present();
+    let blue_square = create_texture_rect(&mut canvas,
+                                           &tecture_creator,
+                                           TextureColor::RosyBrown,
+                                           TEXTURE_SIZE)
+        .expect("Failed to create a texture");
 
-    canvas.with_texture_canvas(&mut square_texture, |texture| {
-        texture.set_draw_color(Color::RGB(0, 255, 0));
-        texture.clear();
-    }).expect("Failed to color a texture");
+    let timer = SystemTime::now();
 
     let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
 
@@ -57,7 +86,21 @@ pub fn main() {
         canvas.set_draw_color(Color::RGB(188,143,143));
         canvas.clear();
 
-        canvas.copy(&square_texture,
+        // the rectangle switch happens here.
+        let dispplay_green = match timer.elapsed() {
+            Ok(elapsed) => elapsed.as_secs() % 2 == 0,
+            Err(_) => {
+                true
+            }
+        };
+        let square_texture = if dispplay_green {
+            &green_square
+        } else {
+            &blue_square
+        };
+         // copy our texture to the window
+
+        canvas.copy(square_texture,
                     None,
                     Rect::new(0, 0, TEXTURE_SIZE, TEXTURE_SIZE))
             .expect("couldnt copy texture into window");
