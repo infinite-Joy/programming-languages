@@ -1,3 +1,18 @@
+fn upppercase(c: u8) -> u8 {
+    match c {
+        b'a'...b'z' => c - 32,
+        _ => c,
+    }
+    
+}
+
+fn is_alphanumeric(c: char) -> bool {
+    match c {
+        'a'...'z' | 'A'...'Z' | '0'...'9' => true,
+        _ => false,
+    }
+    
+}
 enum Expr {
     Null,
     Add(i32, i32),
@@ -117,6 +132,13 @@ fn main() {
 
     let quotient = Expr::Div{ dividend: 10, divisor: 2 };
     let sum = Expr::Add(40, 2);
+
+    println!("Printing out the expressions.");
+    print_expr(quotient);
+    print_expr(sum);
+
+    println!("{}", upppercase(b'j') as char);
+    println!("{}", is_alphanumeric('j') as u8);
 
 
 }
