@@ -1,3 +1,7 @@
+fn inc_x(point: &mut Point) {
+    point.x += 1;
+}
+
 fn max(a: i32, b: i32) -> i32 {
     if a > b {
         a
@@ -15,6 +19,22 @@ fn print_point(point: &Point) {
 struct Point {
     x: i32,
     y: i32,
+}
+
+impl Point {
+    fn new(x: i32, y: i32) -> Self {
+        Self {x, y}
+        
+    }
+    fn distance_from_origin(&self) -> f64 {
+        let sum_of_squares = self.x.pow(2) + self.y.pow(2);
+        (sum_of_squares as f64).sqrt()
+    }
+
+    fn translate(&mut self, dx: i32, dy: i32) {
+        self.x += dx;
+        self.y += dy;
+    }
 }
 
 fn main() {
@@ -55,5 +75,16 @@ fn main() {
     let n1 = 42;
     let n2 = n1;
     println!("{}", n1);
+    println!("{}", n2);
+
+    let mut p1 = Point { x: 1, y: 2 };
+    println!("value of p1 before inc {}", p1.x);
+    inc_x(&mut p1);
+    println!("value of p1 after inc {}", p1.x);
+
+    let point = Point { x: 24, y: 42 };
+    println!("({}, {})", point.x, point.y);
+    println!("Distance from origin {}", point.distance_from_origin());
+
 
 }
