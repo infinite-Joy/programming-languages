@@ -1,0 +1,7 @@
+[package]
+name = "neo4j_playbook"
+version = "0.1.0"
+authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
+
+[dependencies]
+rusted_cypher = "1.1.0"
