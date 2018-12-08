@@ -74,12 +74,14 @@ fn example() -> Result<(), Box<Error>> {
     let ndim = 4;
     let n_samples = (iris_matrix.len() as i32)/ndim;
     println!("{:#?}", n_samples);
-    let iris_ndmatrix = Array::from_shape_vec((150, 4), iris_matrix);
-    let trm = iris_ndmatrix.t();
-    println!("{:#?}", iris_ndmatrix);
-    //println!("Shape of the matrix {:?}", iris_ndmatrix.dim());
-    //iris_ndmatrix.invert_axis(Axis(0));
-    //println!("Shape of the matrix after transposition {:?}", &iris_ndmatrix.shape());
+
+    // both unwrap and try is fine.
+    //let iris_ndmatrix = Array::from_shape_vec((150, 4).f(), iris_matrix).unwrap();
+    let iris_ndmatrix = Array::from_shape_vec((150, 4).f(), iris_matrix)?;
+    //println!("{:#?}", iris_ndmatrix);
+    println!("Shape of the matrix {:?}", iris_ndmatrix.dim());
+    let inverted_iris = iris_ndmatrix.t();
+    println!("Shape of the matrix after transposition {:?}", inverted_iris.shape());
     Ok(())
 }
 
