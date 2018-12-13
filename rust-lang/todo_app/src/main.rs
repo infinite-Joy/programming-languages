@@ -13,7 +13,7 @@ struct Model {
 enum Msg {
     Add,
     Update(String),
-    Remove(String),
+    Remove(usize),
     RemoveAll,
     Nothing,
 }
@@ -39,8 +39,8 @@ impl Component for Model {
             Msg::Update(s) => {
                 self.input = s;
             }
-            Msg::Remove(i) => {
-                // not implemented yet
+            Msg::Remove(index) => {
+                self.todos.remove(index);
             }
             Msg::RemoveAll => {
                 self.todos = vec![];
@@ -53,6 +53,14 @@ impl Component for Model {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Self> {
+        let view_todo = |(i, todo): (usize, &String)| {
+            html! {
+                <li>
+                    { format!("{} |", &todo) }
+                    <button onclick = |_| Msg::Remove(i), >{"remove"}</button>
+                </li>
+            }
+        };
         html! {
             <div>
                 <h1>{"Todo App"}</h1>
@@ -67,10 +75,13 @@ impl Renderable<Model> for Model {
                 <p>{&self.input}</p>
             </div>
             <div>
-                <button>{"Delete all todos"}</button>
+                <button onclick=|_| Msg::RemoveAll, >
+                    {"Delete all todos"}
+                </button>
             </div>
             <div>
                 <ul>
+                    { for self.todos.iter().enumerate().map(view_todo) }
                 </ul>
             </div>
         }
