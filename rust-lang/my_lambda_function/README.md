@@ -1,3 +1,5 @@
+This code implements a word count algorithm and is to show a demo lambda function.
+
 References
 -----------
 
