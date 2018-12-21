@@ -1,36 +1,40 @@
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
+extern crate serde_json;
 extern crate lambda_runtime;
 extern crate regex;
+extern crate log;
+extern crate simple_logger;
+
+use serde_derive::{Serialize, Deserialize};
+use lambda_runtime::{lambda, Context, error::HandlerError};
+use log::error;
+use std::error::Error;
 use std::collections;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-#[macro_use]
-extern crate serde_json;
-use std::io;
-use std::io::prelude::*;
-
-use lambda_runtime::error::HandlerError;
 use regex::Regex;
 
-
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 struct CustomEvent {
     string: String,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize)]
 struct CustomOutput {
     message: String,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
+    simple_logger::init_with_level(log::Level::Debug).unwrap();
     lambda!(my_handler);
 
+    Ok(())
+//fn main() {
     //let mut map = collections::HashMap::<String, u32>::new();
+    //let simple_text = "rust is is a beautiful language";
     //let re = Regex::new(r"\w+").unwrap();
-    //let sample_text = "This is me me.";
-    //for caps in re.captures_iter(&sample_text) {
+    //for caps in re.captures_iter(&simple_text) {
     //    if let Some(cap) = caps.get(0) {
     //        let word = cap.as_str();
     //        match map.entry(word.to_string()) {
@@ -39,29 +43,29 @@ fn main() {
     //        }
     //    }
     //}
-    //// Write counts
+    //// lets see if the above dictionary is what is expected.
     //let mut words: Vec<&String> = map.keys().collect();
     //words.sort();
     //for &word in &words {
     //    if let Some(count) = map.get(word) {
-    //        println!("{}\t{}", count, word);
+    //        println!("{} -> {}", word, count);
     //    }
     //}
 
-    //// Serialize it to a JSON string.
+    //// Serialise to a json string
     //let j = serde_json::to_string(&map).unwrap();
 
-    //// Print, write to a file, or send to an HTTP server.
     //println!("{}", j);
 }
 
-fn my_handler(e: CustomEvent, ctx: lambda_runtime::Context) -> Result<CustomOutput, HandlerError> {
+fn my_handler(event: CustomEvent, ctx: Context) -> Result<CustomOutput, HandlerError> {
+    if event.string == "" {
+        error!("Empty name in request {}", ctx.aws_request_id);
+        return Err(ctx.new_error("Empty name"));
+    }
     let mut map = collections::HashMap::<String, u32>::new();
     let re = Regex::new(r"\w+").unwrap();
-    if e.string == "" {
-        return Err(ctx.new_error("Missing input string!"));
-    }
-    for caps in re.captures_iter(&e.string) {
+    for caps in re.captures_iter(&event.string) {
         if let Some(cap) = caps.get(0) {
             let word = cap.as_str();
             match map.entry(word.to_string()) {
@@ -71,10 +75,10 @@ fn my_handler(e: CustomEvent, ctx: lambda_runtime::Context) -> Result<CustomOutp
         }
     }
 
-    // Serialize it to a JSON string.
+    // Serialise to a json string
     let j = serde_json::to_string(&map).unwrap();
 
-    Ok(CustomOutput{
+    Ok(CustomOutput {
         message: format!("{}", j),
     })
 }
