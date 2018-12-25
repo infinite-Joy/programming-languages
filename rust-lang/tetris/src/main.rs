@@ -6,6 +6,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::video::{Window, WindowContext};
+use sdl2::image::{LoadTexture, INIT_PNG, INIT_JPG};
 
 use std::time::{ Duration, SystemTime };
 use std::thread::sleep;
@@ -40,7 +41,11 @@ fn create_texture_rect<'a>(canvas: &mut Canvas<Window>,
 
 pub fn main() {
     let sdl_context = sdl2::init().expect("SDL initialization failed");
-    let video_subsystem = sdl_context.video().expect("Couldnt get SDL video subsystem.");
+    let video_subsystem = sdl_context.video()
+        .expect("Couldnt get SDL video subsystem.");
+
+    sld2::image::init(INIT_PNG | INIT_JPG)
+        .expect("Couldnt initialise image context");
 
     let window = video_subsystem.window("rust sdl2 demo: Video", 800, 600)
         .position_centered()
