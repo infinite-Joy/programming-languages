@@ -3,6 +3,7 @@ name = "my_lambda_function"
 version = "0.1.0"
 authors = ["joydeep bhattacharjee"]
 autobins = false
+edition = "2018"
 
 [dependencies]
 lambda_runtime = "0.1"
