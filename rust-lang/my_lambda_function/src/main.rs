@@ -15,11 +15,6 @@ struct CustomEvent {
     string: String,
 }
 
-#[derive(Serialize, Deserialize)]
-struct CustomOutput {
-    message: String,
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     simple_logger::init_with_level(log::Level::Debug).unwrap();
     lambda!(my_handler);
@@ -53,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //println!("{}", j);
 }
 
-fn my_handler(event: CustomEvent, ctx: Context) -> Result<CustomOutput, HandlerError> {
+fn my_handler(event: CustomEvent, ctx: Context) -> Result<String, HandlerError> {
     if event.string == "" {
         error!("Empty name in request {}", ctx.aws_request_id);
         return Err(ctx.new_error("Empty name"));
@@ -73,7 +68,5 @@ fn my_handler(event: CustomEvent, ctx: Context) -> Result<CustomOutput, HandlerE
     // Serialise to a json string
     let j = serde_json::to_string(&map).unwrap();
 
-    Ok(CustomOutput {
-        message: format!("{}", j),
-    })
+    Ok(j)
 }
