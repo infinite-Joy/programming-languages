@@ -19,38 +19,44 @@ from flask import Flask, render_template, send_file, make_response, request
 app = Flask(__name__)
 
 import sqlite3
-conn=sqlite3.connect('mandal_sensor.db')
-curs=conn.cursor()
 
 # Retrieve LAST data from database
 def getLastData():
-    for row in curs.execute("select * from voltage_current order by timestamp desc LIMIT 1;"):
-        voltage = row[1]
-        current = row[2]
-        time = str(row[3])
-    #conn.close()
-    return voltage, current, time
+    with sqlite3.connect('mandal_sensor.db') as conn:
+        curs=conn.cursor()
+        for row in curs.execute("select * from voltage_current order by timestamp desc LIMIT 1;"):
+            voltage = row[1]
+            current = row[2]
+            time = str(row[3])
+        curs.close()
+        return voltage, current, time
 
 
 def getHistData(numSamples=10000):
-    curs.execute("SELECT * FROM voltage_current ORDER BY timestamp DESC LIMIT "+str(numSamples))
-    data = curs.fetchall()
-    dates = []
-    temps = []
-    hums = []
-    for row in reversed(data):
-        dates.append(row[0])
-        temps.append(row[1])
-        hums.append(row[2])
-    return dates, temps, hums
+    with sqlite3.connect('mandal_sensor.db') as conn:
+        curs=conn.cursor()
+        curs.execute("SELECT * FROM voltage_current ORDER BY timestamp DESC LIMIT "+str(numSamples))
+        data = curs.fetchall()
+        dates = []
+        temps = []
+        hums = []
+        for row in reversed(data):
+            dates.append(row[0])
+            temps.append(row[1])
+            hums.append(row[2])
+        curs.close()
+        return dates, temps, hums
 
 def maxRowsTable():
-    for row in curs.execute("select COUNT(*) from  voltage_current"):
-        maxNumberRows=row[0]
-    return maxNumberRows
+    with sqlite3.connect('mandal_sensor.db') as conn:
+        curs=conn.cursor()
+        for row in curs.execute("select COUNT(*) from  voltage_current"):
+            maxNumberRows=row[0]
+        curs.close()
+        return maxNumberRows
 
 #initialize global variables
-numSamples
+numSamples = 1000
 numSamples = maxRowsTable()
 if (numSamples > 101):
     numSamples = 100
@@ -124,6 +130,8 @@ def plot_hum():
     response.mimetype = 'image/png'
     return response
 
+
 if __name__ == "__main__":
-   app.run(host='0.0.0.0', port=80, debug=False)
+   #app.run(host='0.0.0.0', port=80, debug=False)
+   app.run()
 
