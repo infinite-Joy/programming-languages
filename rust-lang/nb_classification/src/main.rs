@@ -41,8 +41,7 @@ struct Flower {
 
 impl Flower {
     fn into_feature_vector(&self) -> Vec<f64> {
-        let x_vector = vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width];
-        x_vector
+        vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width];
     }
 
     fn into_labels(&self) -> Vec<f64> {
