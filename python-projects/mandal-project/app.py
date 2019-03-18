@@ -37,15 +37,14 @@ def getHistData(numSamples=10000):
         curs=conn.cursor()
         curs.execute("SELECT * FROM voltage_current ORDER BY timestamp DESC LIMIT "+str(numSamples))
         data = curs.fetchall()
-        dates = []
-        temps = []
-        hums = []
+        primary_key, voltage, current, timestamp = [], [], [], []
         for row in reversed(data):
-            dates.append(row[0])
-            temps.append(row[1])
-            hums.append(row[2])
+            primary_key.append(row[0])
+            voltage.append(row[1])
+            current.append(row[2])
+            timestamp.append(row[3])
         curs.close()
-        return dates, temps, hums
+        return primary_key, voltage, current, timestamp
 
 def maxRowsTable():
     with sqlite3.connect('mandal_sensor.db') as conn:
@@ -65,9 +64,9 @@ if (numSamples > 101):
 # main route
 @app.route("/")
 def index():
-    time, temp, hum = getLastData()
-    dates, temps, hums = getHistData()
-    print(dates, temps, hums)
+    #time, temp, hum = getLastData()
+    primary_key, voltage, current, timestamp = getHistData()
+    print(primary_key, voltage, current, timestamp)
     #templateData = {
     #  'time'       : time,
     #  'temp'       : temp,
@@ -75,8 +74,9 @@ def index():
     #  'numSamples' : numSamples
     #}
     #return render_template('index.html', **templateData)
-    data = [[1167609600, 0.7537], [1167696000000, 0.7537]]
-    return render_template('index.html', mydata=data)
+    voltage_data = [[t, volt] for t, volt in zip(timestamp, voltage)]
+    current_data = [[t, amp] for t, amp in zip(timestamp, current)]
+    return render_template('index.html', voltage_data=voltage_data, current_data=current_data)
 
 
 @app.route('/', methods=['POST'])
