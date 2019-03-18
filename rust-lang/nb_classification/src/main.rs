@@ -53,33 +53,23 @@ fn read_csv() -> Result<(), Box<Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
-    // let mut flower_matrix = Vec::new();
-    // let mut labels = Vec::new();
     for result in rdr.deserialize() {
         let r: Flower = result?;
-        // flower_matrix.extend(r.into_feature_vector());
-        // labels.extend(r.into_labels());
         data.push(r); // data contains all the records
     }
 
     // shuffle the data.
-    // println!("{:?}", data);
     data.shuffle(&mut thread_rng());
-    // println!("{:?}", data);
 
     // separate out to train and test datasets.
-    // println!("{:?}", data.len());
     let test_size: f64 = 0.2;
     let test_size: f64 = data.len() as f64 * test_size;
     let test_size = test_size.round() as usize;
     let (test_data, train_data) = data.split_at(test_size);
     let train_size = train_data.len();
     let test_size = test_data.len();
-    // println!("{:?}", train_size);
-    // println!("{:?}", test_size);
 
     // differentiate the features and the labels.
-    // println!("{:?}", train_data);
     let flower_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
     let flower_y_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_labels()).collect();
 
@@ -92,7 +82,7 @@ fn read_csv() -> Result<(), Box<Error>> {
     let flower_x_test = Matrix::new(test_size, 4, flower_x_test);
     // let flower_y_test = flower_y_test.chunks(3).collect();
 
-    let mut model = NaiveBayes::<naive_bayes::Bernoulli>::new();
+    let mut model = NaiveBayes::<naive_bayes::Gaussian>::new();
     model.train(&flower_x_train, &flower_y_train)
         .expect("failed to train model of flowers");
 
@@ -103,30 +93,22 @@ fn read_csv() -> Result<(), Box<Error>> {
     let test_matrix = Matrix::ones(1, 4);
     let predictions = model.predict(&test_matrix)
         .expect("Failed to predict");
-    // println!("{:?}", predictions);
 
     // predict
     let predictions = model.predict(&flower_x_test)
         .expect("failed to make predictions on the test data.");
     let predictions = predictions.into_vec();
-    // println!("{:?}", predictions.len());
-    // println!("{:?}", flower_y_test.len());
 
     // Score how well we did
     let mut correct_hits = 0;
     let mut total_hits = 0;
     for (predicted, actual) in predictions.chunks(3).zip(flower_y_test.chunks(3)) {
-        // println!("predicted {:?}", predicted);
-        // println!("actual {:?}", actual);
-        // println!("$$$$$$$$$$$$$$$$$");
         if predicted == actual {
             correct_hits += 1;
         }
         total_hits += 1;
     }
-    // println!("{:?}", correct_hits);
-    // println!("{:?}", total_hits);
-    println!("accuracy: {:?}", correct_hits as f64/total_hits as f64); // only 30%
+    println!("accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
 
     Ok(())
 }
