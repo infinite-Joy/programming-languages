@@ -7,35 +7,24 @@
 #  10Jan18
 
 '''
-    RPi WEb Server for DHT captured data with Graph plot
+    RPi WEb Server for captured data with Graph plot
 '''
-
-
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-import io
-
-from flask import Flask, render_template, send_file, make_response, request
-app = Flask(__name__)
 
 import sqlite3
 
-# Retrieve LAST data from database
-def getLastData():
-    with sqlite3.connect('mandal_sensor.db') as conn:
-        curs=conn.cursor()
-        for row in curs.execute("select * from voltage_current order by timestamp desc LIMIT 1;"):
-            voltage = row[1]
-            current = row[2]
-            time = str(row[3])
-        curs.close()
-        return voltage, current, time
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+DB_FILENAME = 'mandal_sensor.db'
 
 
-def getHistData(numSamples=10000):
-    with sqlite3.connect('mandal_sensor.db') as conn:
-        curs=conn.cursor()
-        curs.execute("SELECT * FROM voltage_current ORDER BY timestamp DESC LIMIT "+str(numSamples))
+def get_voltage_current_data(numSamples=10000):
+    with sqlite3.connect(DB_FILENAME) as conn:
+        curs = conn.cursor()
+        curs.execute(
+            "SELECT * FROM voltage_current ORDER BY timestamp DESC LIMIT "
+            + str(numSamples))
         data = curs.fetchall()
         primary_key, voltage, current, timestamp = [], [], [], []
         for row in reversed(data):
@@ -46,96 +35,17 @@ def getHistData(numSamples=10000):
         curs.close()
         return primary_key, voltage, current, timestamp
 
-def maxRowsTable():
-    with sqlite3.connect('mandal_sensor.db') as conn:
-        curs=conn.cursor()
-        for row in curs.execute("select COUNT(*) from  voltage_current"):
-            maxNumberRows=row[0]
-        curs.close()
-        return maxNumberRows
 
-#initialize global variables
-numSamples = 1000
-numSamples = maxRowsTable()
-if (numSamples > 101):
-    numSamples = 100
-
-
-# main route
 @app.route("/")
 def index():
-    #time, temp, hum = getLastData()
-    primary_key, voltage, current, timestamp = getHistData()
-    print(primary_key, voltage, current, timestamp)
-    #templateData = {
-    #  'time'       : time,
-    #  'temp'       : temp,
-    #  'hum'        : hum,
-    #  'numSamples' : numSamples
-    #}
-    #return render_template('index.html', **templateData)
+    primary_key, voltage, current, timestamp = get_voltage_current_data()
     voltage_data = [[t, volt] for t, volt in zip(timestamp, voltage)]
     current_data = [[t, amp] for t, amp in zip(timestamp, current)]
-    return render_template('index.html', voltage_data=voltage_data, current_data=current_data)
-
-
-@app.route('/', methods=['POST'])
-def my_form_post():
-    global numSamples
-    numSamples = int (request.form['numSamples'])
-    numMaxSamples = maxRowsTable()
-    if (numSamples > numMaxSamples):
-        numSamples = (numMaxSamples-1)
-
-    time, temp, hum = getLastData()
-
-    templateData = {
-      'time'       : time,
-      'temp'       : temp,
-      'hum'        : hum,
-      'numSamples' : numSamples
-    }
-    return render_template('index.html', **templateData)
-
-
-@app.route('/plot/temp')
-def plot_temp():
-    times, temps, hums = getHistData(numSamples)
-    ys = temps
-    fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
-    axis.set_title("Temperature [°C]")
-    axis.set_xlabel("Samples")
-    axis.grid(True)
-    xs = range(numSamples)
-    axis.plot(xs, ys)
-    canvas = FigureCanvas(fig)
-    output = io.BytesIO()
-    canvas.print_png(output)
-    response = make_response(output.getvalue())
-    response.mimetype = 'image/png'
-    return response
-
-@app.route('/plot/hum')
-def plot_hum():
-    times, temps, hums = getHistData(numSamples)
-    ys = hums
-    fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
-    axis.set_title("Humidity [%]")
-    axis.set_xlabel("Samples")
-    axis.grid(True)
-    xs = range(numSamples)
-    axis.plot(xs, ys)
-    canvas = FigureCanvas(fig)
-    output = io.BytesIO()
-    canvas.print_png(output)
-    response = make_response(output.getvalue())
-    response.mimetype = 'image/png'
-    return response
+    return render_template('index.html',
+                           voltage_data=voltage_data,
+                           current_data=current_data)
 
 
 if __name__ == "__main__":
-   #app.run(host='0.0.0.0', port=80, debug=False)
-   app.run()
-
+    # app.run(host='0.0.0.0', port=80, debug=False)
+    app.run(debug=True)
