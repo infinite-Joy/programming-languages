@@ -66,13 +66,17 @@ if (numSamples > 101):
 @app.route("/")
 def index():
     time, temp, hum = getLastData()
-    templateData = {
-      'time'       : time,
-      'temp'       : temp,
-      'hum'        : hum,
-      'numSamples' : numSamples
-    }
-    return render_template('index.html', **templateData)
+    dates, temps, hums = getHistData()
+    print(dates, temps, hums)
+    #templateData = {
+    #  'time'       : time,
+    #  'temp'       : temp,
+    #  'hum'        : hum,
+    #  'numSamples' : numSamples
+    #}
+    #return render_template('index.html', **templateData)
+    data = [[1167609600, 0.7537], [1167696000000, 0.7537]]
+    return render_template('index.html', mydata=data)
 
 
 @app.route('/', methods=['POST'])
