@@ -68,7 +68,7 @@ fn read_csv() -> Result<(), Box<Error>> {
     // println!("{:?}", data);
 
     // separate out to train and test datasets.
-    println!("{:?}", data.len());
+    // println!("{:?}", data.len());
     let test_size: f64 = 0.2;
     let test_size: f64 = data.len() as f64 * test_size;
     let test_size = test_size.round() as usize;
@@ -97,46 +97,36 @@ fn read_csv() -> Result<(), Box<Error>> {
         .expect("failed to train model of flowers");
 
     // How many classes do I h ave?
-    println!("{:?}", model.class_prior());
+    // println!("{:?}", model.class_prior());
 
     // Creating some dummy test data.
     let test_matrix = Matrix::ones(1, 4);
     let predictions = model.predict(&test_matrix)
         .expect("Failed to predict");
-    println!("{:?}", predictions);
+    // println!("{:?}", predictions);
 
     // predict
     let predictions = model.predict(&flower_x_test)
         .expect("failed to make predictions on the test data.");
     let predictions = predictions.into_vec();
-    println!("{:?}", flower_y_test);
+    // println!("{:?}", predictions.len());
+    // println!("{:?}", flower_y_test.len());
 
     // Score how well we did
-    let mut hits = 0;
-    println!("{:?}", flower_x_test.data().len());
-    for index in 0..flower_x_test.data().len() {
-        // println!("{}", index);
-        // println!("{}", predictions[index]);
-
+    let mut correct_hits = 0;
+    let mut total_hits = 0;
+    for (predicted, actual) in predictions.chunks(3).zip(flower_y_test.chunks(3)) {
+        // println!("predicted {:?}", predicted);
+        // println!("actual {:?}", actual);
+        // println!("$$$$$$$$$$$$$$$$$");
+        if predicted == actual {
+            correct_hits += 1;
+        }
+        total_hits += 1;
     }
-    // for (flower, prediction) in flower_x_test.iter().zip(predictions.row_iter())
-
-
-
+    // println!("{:?}", correct_hits);
+    // println!("{:?}", total_hits);
+    println!("accuracy: {:?}", correct_hits as f64/total_hits as f64); // only 30%
 
     Ok(())
 }
-
-// fn evaluate_prediction(hits: &mut u32, flower: Vec, prediction: &[f64]) ->  {
-//     let predicted_color = dog.color;
-//     let actual_color = if prediction[0] == 1. {
-//         Color::Red
-//     } else {
-//         Color::White
-//     };
-//     let accurate = predicted_color == actual_color;
-//     if accurate {
-//         *hits += 1;
-//     }
-//     (actual_color, accurate)
-// }
