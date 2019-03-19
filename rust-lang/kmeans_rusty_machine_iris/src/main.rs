@@ -6,11 +6,14 @@ extern crate serde_derive;
 use std::io;
 use std::vec::Vec;
 use std::error::Error;
+use std::iter::repeat;
 
 use rusty_machine;
-use rusty_machine::linalg::{Matrix, BaseMatrix};
+// use rusty_machine::linalg::{Matrix, BaseMatrix};
+use rusty_machine::linalg::Matrix;
 use rusty_machine::learning::k_means::KMeansClassifier;
 use rusty_machine::learning::gmm::{CovOption, GaussianMixtureModel};
+use rusty_machine::learning::dbscan::DBSCAN;
 use rusty_machine::learning::UnSupModel;
 use csv;
 use rand;
@@ -63,10 +66,10 @@ fn main() -> Result<(), Box<Error>> {
 
     // differentiate the features and the labels.
     let flower_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let flower_y_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_labels()).collect();
+    // let flower_y_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_labels()).collect();
 
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let flower_y_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_labels()).collect();
+    // let flower_y_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_labels()).collect();
 
     // COnvert the data into matrices for rusty machine
     let flower_x_train = Matrix::new(train_size, 4, flower_x_train);
@@ -86,11 +89,12 @@ fn main() -> Result<(), Box<Error>> {
     // println!("{}", centroids);
 
     // Create a Kmeans model with 3 clusters
+    let model_type = "Kmeans";
     let mut model = KMeansClassifier::new(clusters);
 
     //Train the model
-    println!("Training the model");
-    model.train(&flower_x_train);
+    println!("Training the {} model", model_type);
+    model.train(&flower_x_train)?;
 
     let centroids = model.centroids().as_ref().unwrap();
     println!("Model Centroids:\n{:.3}", centroids);
@@ -101,16 +105,20 @@ fn main() -> Result<(), Box<Error>> {
     println!("classes: {:?}", classes);
     // println!("{:?}", classes.data().len());
     // println!("{:?}", flower_y_test);
+    let repeat_string = repeat("*********").take(10).collect::<String>();
+    println!("{}", repeat_string);
+    println!("");
 
     // Bring in Gaussian mixture models
     // Create gmm with k(=3) classes.
+    let model_type = "Kmeans";
     let mut model = GaussianMixtureModel::new(2);
     model.set_max_iters(10);
     model.cov_option = CovOption::Diagonal;
 
     //Train the model
-    println!("Training the model");
-    model.train(&flower_x_train);
+    println!("Training the {} model", model_type);
+    model.train(&flower_x_train)?;
 
     // Print the means and covariances of the GMM
     println!("{:?}", model.means());
@@ -125,6 +133,29 @@ fn main() -> Result<(), Box<Error>> {
 
     // Probabilities that each point comes from each Gaussian.
     println!("Probablities from GMM: {:?}", classes.data());
+    let repeat_string = repeat("*********").take(10).collect::<String>();
+    println!("{}", repeat_string);
+    println!("");
+
+    // DBscan slagorithm
+    // eps = 0.3 and min_samples = 10
+    let model_type = "DBScan";
+    let mut model = DBSCAN::new(0.5, 5);
+    // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
+    model.set_predictive(true);
+
+    //Train the model
+    println!("Training the {} model", model_type);
+    model.train(&flower_x_train)?;
+
+    // clusters
+    let clustering = model.clusters().unwrap();
+    println!("{:?}", clustering);
+
+    // Predict the classes and partition into
+    println!("Predicting the samples...");
+    let classes = model.predict(&flower_x_test).unwrap();
+    println!("classes from GMM: {:?}", classes);
 
     Ok(())
 }
