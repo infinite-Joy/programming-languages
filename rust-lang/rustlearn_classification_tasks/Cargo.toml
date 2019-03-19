@@ -1,0 +1,12 @@
+[package]
+name = "rustlearn_classification_tasks"
+version = "0.1.0"
+authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rustlearn = "0.5.0"
+csv = "*"
+serde = "*"
+serde_derive = "*"
+rand = "0.6"
