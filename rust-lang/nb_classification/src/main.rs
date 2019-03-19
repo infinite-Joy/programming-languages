@@ -11,6 +11,7 @@ use std::error::Error;
 use rusty_machine;
 use rusty_machine::linalg::Matrix;
 use rusty_machine::learning::naive_bayes::{self, NaiveBayes};
+use rusty_machine::learning::glm::{GenLinearModel, Bernoulli};
 use rusty_machine::learning::SupModel;
 use csv;
 use rand;
@@ -82,6 +83,7 @@ fn read_csv() -> Result<(), Box<Error>> {
     let flower_x_test = Matrix::new(test_size, 4, flower_x_test);
     // let flower_y_test = flower_y_test.chunks(3).collect();
 
+    // Naive bayes Gaussian
     let mut model = NaiveBayes::<naive_bayes::Gaussian>::new();
     model.train(&flower_x_train, &flower_y_train)
         .expect("failed to train model of flowers");
@@ -108,7 +110,65 @@ fn read_csv() -> Result<(), Box<Error>> {
         }
         total_hits += 1;
     }
-    println!("accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+    println!("Naive Bayes Gaussian: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+
+    // Naive bayes bernoulli
+    let mut model = NaiveBayes::<naive_bayes::Bernoulli>::new();
+    model.train(&flower_x_train, &flower_y_train)
+        .expect("failed to train model of flowers");
+
+    // How many classes do I h ave?
+    // println!("{:?}", model.class_prior());
+
+    // Creating some dummy test data.
+    let test_matrix = Matrix::ones(1, 4);
+    let predictions = model.predict(&test_matrix)
+        .expect("Failed to predict");
+
+    // predict
+    let predictions = model.predict(&flower_x_test)
+        .expect("failed to make predictions on the test data.");
+    let predictions = predictions.into_vec();
+
+    // Score how well we did
+    let mut correct_hits = 0;
+    let mut total_hits = 0;
+    for (predicted, actual) in predictions.chunks(3).zip(flower_y_test.chunks(3)) {
+        if predicted == actual {
+            correct_hits += 1;
+        }
+        total_hits += 1;
+    }
+    println!("Naive Bayes Bernoulli: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+
+    // Gaussian process
+    let mut model = GaussianProcess::default();
+    model.train(&flower_x_train, &flower_y_train)
+        .expect("failed to train model of flowers");
+
+    // How many classes do I h ave?
+    // println!("{:?}", model.class_prior());
+
+    // Creating some dummy test data.
+    let test_matrix = Matrix::ones(1, 4);
+    let predictions = model.predict(&test_matrix)
+        .expect("Failed to predict");
+
+    // predict
+    let predictions = model.predict(&flower_x_test)
+        .expect("failed to make predictions on the test data.");
+    let predictions = predictions.into_vec();
+
+    // Score how well we did
+    let mut correct_hits = 0;
+    let mut total_hits = 0;
+    for (predicted, actual) in predictions.chunks(3).zip(flower_y_test.chunks(3)) {
+        if predicted == actual {
+            correct_hits += 1;
+        }
+        total_hits += 1;
+    }
+    println!("Gaussian process: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
 
     Ok(())
 }
