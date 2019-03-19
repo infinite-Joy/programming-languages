@@ -14,8 +14,10 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 use rustlearn::prelude::*;
-use rustlearn::ensemble::random_forest::Hyperparameters;
+use rustlearn::ensemble::random_forest::Hyperparameters as randomforest;
 use rustlearn::trees::decision_tree;
+use rustlearn::linear_models::sgdclassifier::Hyperparameters as logistic_regression;
+use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
 use rustlearn::metrics::accuracy_score;
 
 fn main() {
@@ -94,7 +96,7 @@ fn read_csv() -> Result<(), Box<Error>> {
     tree_params.min_samples_split(10)
         .max_features(4);
 
-    let mut model = Hyperparameters::new(tree_params, 10).one_vs_rest();
+    let mut model = randomforest::new(tree_params, 10).one_vs_rest();
 
     model.fit(&flower_x_train, &flower_y_train).unwrap();
 
@@ -109,6 +111,52 @@ fn read_csv() -> Result<(), Box<Error>> {
     let accuracy = accuracy_score(&flower_y_test, &prediction);
 
     println!("Random Forest: accuracy: {:?}", accuracy);
+
+    // working with Stochastic Gradient descent.
+    // uses adaptive per parameter learning rate Adagrad
+    let mut model = logistic_regression::new(4)
+        .learning_rate(1.0)
+        .l2_penalty(0.5)
+        .l1_penalty(0.0)
+        .one_vs_rest();
+    let num_epochs = 100;
+
+    for _ in 0..num_epochs {
+        model.fit(&flower_x_train, &flower_y_train).unwrap();
+    }
+
+    let prediction = model.predict(&flower_x_test).unwrap();
+    let accuracy = accuracy_score(&flower_y_test, &prediction);
+    println!("Logistic Regression: accuracy: {:?}", accuracy);
+
+    // Working with svms
+    let mut svm_linear_model = libsvm_svc::new(4, KernelType::Linear, 3)
+        .C(0.3)
+        .build();
+    let mut svm_poly_model = libsvm_svc::new(4, KernelType::Polynomial, 3)
+        .C(0.3)
+        .build();
+    let mut svm_rbf_model = libsvm_svc::new(4, KernelType::RBF, 3)
+        .C(0.3)
+        .build();
+    let mut svm_sigmoid_model = libsvm_svc::new(4, KernelType::Sigmoid, 3)
+        .C(0.3)
+        .build();
+    let svm_kernel_types = ["linear", "polynomial", "rbf", "sigmoid"];
+    let svm_model_types = [svm_linear_model, svm_poly_model, svm_rbf_model, svm_sigmoid_model];
+    for (kernel_type, &svm_model) in svm_kernel_types.iter().zip(svm_model_types.iter()) {
+        svm_model.fit(&flower_x_train, &flower_y_train).unwrap();
+
+        let prediction = svm_model.predict(&flower_x_test).unwrap();
+        let accuracy = accuracy_score(&flower_y_test, &prediction);
+        println!("Lib svm {kernel}: accuracy: {accuracy}", accuracy=accuracy, kernel=kernel_type);
+    }
+
+    model.fit(&flower_x_train, &flower_y_train).unwrap();
+
+    let prediction = model.predict(&flower_x_test).unwrap();
+    let accuracy = accuracy_score(&flower_y_test, &prediction);
+    println!("Lib svm: accuracy: {:?}", accuracy);
 
     Ok(())
 }
