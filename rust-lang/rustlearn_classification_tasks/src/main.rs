@@ -130,33 +130,27 @@ fn read_csv() -> Result<(), Box<Error>> {
     println!("Logistic Regression: accuracy: {:?}", accuracy);
 
     // Working with svms
-    let mut svm_linear_model = libsvm_svc::new(4, KernelType::Linear, 3)
+    let svm_linear_model = libsvm_svc::new(4, KernelType::Linear, 3)
         .C(0.3)
         .build();
-    let mut svm_poly_model = libsvm_svc::new(4, KernelType::Polynomial, 3)
+    let svm_poly_model = libsvm_svc::new(4, KernelType::Polynomial, 3)
         .C(0.3)
         .build();
-    let mut svm_rbf_model = libsvm_svc::new(4, KernelType::RBF, 3)
+    let svm_rbf_model = libsvm_svc::new(4, KernelType::RBF, 3)
         .C(0.3)
         .build();
-    let mut svm_sigmoid_model = libsvm_svc::new(4, KernelType::Sigmoid, 3)
+    let svm_sigmoid_model = libsvm_svc::new(4, KernelType::Sigmoid, 3)
         .C(0.3)
         .build();
     let svm_kernel_types = ["linear", "polynomial", "rbf", "sigmoid"];
-    let svm_model_types = [svm_linear_model, svm_poly_model, svm_rbf_model, svm_sigmoid_model];
-    for (kernel_type, &svm_model) in svm_kernel_types.iter().zip(svm_model_types.iter()) {
+    let mut svm_model_types = [svm_linear_model, svm_poly_model, svm_rbf_model, svm_sigmoid_model];
+    for (kernel_type, svm_model) in svm_kernel_types.iter().zip(svm_model_types.iter_mut()) {
         svm_model.fit(&flower_x_train, &flower_y_train).unwrap();
 
         let prediction = svm_model.predict(&flower_x_test).unwrap();
         let accuracy = accuracy_score(&flower_y_test, &prediction);
         println!("Lib svm {kernel}: accuracy: {accuracy}", accuracy=accuracy, kernel=kernel_type);
     }
-
-    model.fit(&flower_x_train, &flower_y_train).unwrap();
-
-    let prediction = model.predict(&flower_x_test).unwrap();
-    let accuracy = accuracy_score(&flower_y_test, &prediction);
-    println!("Lib svm: accuracy: {:?}", accuracy);
 
     Ok(())
 }
