@@ -11,7 +11,9 @@ use std::error::Error;
 use rusty_machine;
 use rusty_machine::linalg::Matrix;
 use rusty_machine::learning::naive_bayes::{self, NaiveBayes};
-use rusty_machine::learning::glm::{GenLinearModel, Bernoulli};
+use rusty_machine::learning::nnet::{NeuralNet, BCECriterion};
+use rusty_machine::learning::toolkit::regularization::Regularization;
+use rusty_machine::learning::optim::grad_desc::StochasticGD;
 use rusty_machine::learning::SupModel;
 use csv;
 use rand;
@@ -141,22 +143,27 @@ fn read_csv() -> Result<(), Box<Error>> {
     }
     println!("Naive Bayes Bernoulli: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
 
-    // Gaussian process
-    let mut model = GaussianProcess::default();
-    model.train(&flower_x_train, &flower_y_train)
-        .expect("failed to train model of flowers");
+    // Neural Network
 
-    // How many classes do I h ave?
-    // println!("{:?}", model.class_prior());
+    // Set the layer sizes - from input to output
+    // let layers = &[input_feature_dim, whatever layers you want, output_feature_dimension]
+    // let layers = &[4,5,11,7,3];
+    let layers = &[4,11,3];
+
+    // Choose the BCE criterion with L2 regularization (`lambda=0.1`).
+    let criterion = BCECriterion::new(Regularization::L2(0.1));
+
+    // We will just use the default stochastic gradient descent.
+    let mut model = NeuralNet::new(layers, criterion, StochasticGD::default());
+    model.train(&flower_x_train, &flower_y_train).unwrap();
 
     // Creating some dummy test data.
     let test_matrix = Matrix::ones(1, 4);
-    let predictions = model.predict(&test_matrix)
+    let _ = model.predict(&test_matrix)
         .expect("Failed to predict");
 
     // predict
-    let predictions = model.predict(&flower_x_test)
-        .expect("failed to make predictions on the test data.");
+    let predictions = model.predict(&flower_x_test).unwrap();
     let predictions = predictions.into_vec();
 
     // Score how well we did
@@ -168,7 +175,7 @@ fn read_csv() -> Result<(), Box<Error>> {
         }
         total_hits += 1;
     }
-    println!("Gaussian process: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+    println!("Neural Network: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
 
     Ok(())
 }
