@@ -10,6 +10,7 @@ use std::error::Error;
 use rusty_machine;
 use rusty_machine::linalg::{Matrix, BaseMatrix};
 use rusty_machine::learning::k_means::KMeansClassifier;
+use rusty_machine::learning::gmm::{CovOption, GaussianMixtureModel};
 use rusty_machine::learning::UnSupModel;
 use csv;
 use rand;
@@ -78,12 +79,13 @@ fn main() -> Result<(), Box<Error>> {
     const clusters: usize = 3;
 
     // Choose 3 cluster centers.
-    let centroids = Matrix::new(clusters, features_num, vec![ 1.97114409, -0.93866753,  1.47453329, -0.61102101,
-                                            -0.22826977,  1.6934484, -1.6573789 , -0.94710845,
-                                            -0.18181, -1.19016212, -1.88469035,  0.02483312]);
-    println!("{}", centroids);
+    let centroids = Matrix::new(clusters, features_num,
+        vec![ 1.97114409, -0.93866753,  1.47453329, -0.61102101,
+            -0.22826977,  1.6934484, -1.6573789 , -0.94710845,
+            -0.18181, -1.19016212, -1.88469035,  0.02483312]);
+    // println!("{}", centroids);
 
-    // Create a new model with 3 clusters
+    // Create a Kmeans model with 3 clusters
     let mut model = KMeansClassifier::new(clusters);
 
     //Train the model
@@ -97,15 +99,32 @@ fn main() -> Result<(), Box<Error>> {
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
     println!("classes: {:?}", classes);
-    println!("{:?}", classes.data().len());
-    println!("{:?}", flower_y_test);
+    // println!("{:?}", classes.data().len());
+    // println!("{:?}", flower_y_test);
 
-    // let tmp: Vec<_> = flower_y_test
-    //     .chunks(3)
-    //     // .map(|x| x.chunks(3).collect::<Vec<_>>())
-    //     .map(|x| x.iter().position(|&num| num == 1.0))
-    //     .collect();
-    // println!("{:?}", tmp);
+    // Bring in Gaussian mixture models
+    // Create gmm with k(=3) classes.
+    let mut model = GaussianMixtureModel::new(2);
+    model.set_max_iters(10);
+    model.cov_option = CovOption::Diagonal;
+
+    //Train the model
+    println!("Training the model");
+    model.train(&flower_x_train);
+
+    // Print the means and covariances of the GMM
+    println!("{:?}", model.means());
+    println!("{:?}", model.covariances());
+
+    // Predict the classes and partition into
+    println!("Predicting the samples...");
+    let classes = model.predict(&flower_x_test).unwrap();
+    println!("classes from GMM: {:?}", classes);
+    // println!("{:?}", classes.data().len());
+    // println!("{:?}", flower_y_test);
+
+    // Probabilities that each point comes from each Gaussian.
+    println!("Probablities from GMM: {:?}", classes.data());
 
     Ok(())
 }
