@@ -11,8 +11,10 @@ use std::error::Error;
 use rusty_machine;
 use rusty_machine::linalg::{Matrix, BaseMatrix};
 use rusty_machine::linalg::Vector;
-use rusty_machine::learning::glm::{Bernoulli, GenLinearModel};
+// use rusty_machine::learning::glm::{Bernoulli, GenLinearModel};
+use rusty_machine::learning::naive_bayes::{NaiveBayes, Gaussian, Bernoulli};
 use rusty_machine::learning::SupModel;
+use rusty_machine::analysis::score::accuracy;
 use csv;
 use rand;
 use rand::thread_rng;
@@ -39,11 +41,20 @@ impl Flower {
         vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
     }
 
-    fn into_labels(&self) -> f64 {
+    fn into_labelencoded_labels(&self) -> f64 {
         match self.species.as_str() {
             "setosa" => 0.,
             "versicolor" => 1.,
             "virginica" => 2.,
+            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
+        }
+    }
+
+    fn into_onehot_labels(&self) -> Vec<f64> {
+        match self.species.as_str() {
+            "setosa" => vec![1., 0., 0.],
+            "versicolor" => vec![0., 1., 0.],
+            "virginica" => vec![0., 0., 1.],
             l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
         }
     }
@@ -72,20 +83,24 @@ fn read_csv() -> Result<(), Box<Error>> {
 
     // differentiate the features and the labels.
     let flower_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let flower_y_train: Vec<f64> = train_data.iter().map(|r| r.into_labels()).collect();
+    let flower_y_train_lc: Vec<f64> = train_data.iter().map(|r| r.into_labelencoded_labels()).collect();
+    let flower_y_train_onehot: Vec<f64> = train_data.iter().flat_map(|r| r.into_onehot_labels()).collect();
 
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let flower_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).collect();
+    let flower_y_test_lc: Vec<f64> = test_data.iter().map(|r| r.into_labelencoded_labels()).collect();
+    let flower_y_test_onehot: Vec<f64> = test_data.iter().flat_map(|r| r.into_onehot_labels()).collect();
 
     // COnvert the data into matrices for rusty machine
     let flower_x_train = Matrix::new(train_size, 4, flower_x_train);
-    let flower_y_train = Vector::new(flower_y_train);
+    let flower_y_train_lc = Vector::new(flower_y_train_lc);
+    let flower_y_train_onehot = Matrix::new(train_size, 3, flower_y_train_onehot);
     let flower_x_test = Matrix::new(test_size, 4, flower_x_test);
-    let flower_y_test = Vector::new(flower_y_test);
+    let flower_y_test_lc = Vector::new(flower_y_test_lc);
+    // let flower_y_test_onehot = Matrix::new(test_size, 3, flower_y_test_onehot);
 
-    // Create GLM with Bernoulli distribution.
-    let mut model_glm_bernoulli = GenLinearModel::new(Bernoulli);
-    model_glm_bernoulli.train(&flower_x_train, &flower_y_train)?;
+    // // Create GLM with Bernoulli distribution.
+    // let mut model_glm_bernoulli = GenLinearModel::new(Bernoulli);
+    // model_glm_bernoulli.train(&flower_x_train, &flower_y_train)?;
 
     // // Creating some dummy test data.
     // let test_matrix = Matrix::ones(1, 4);
@@ -106,34 +121,38 @@ fn read_csv() -> Result<(), Box<Error>> {
     // }
     // println!("Naive Bayes Gaussian: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
 
-    // // Naive bayes bernoulli
-    // let mut model = NaiveBayes::<naive_bayes::Bernoulli>::new();
-    // model.train(&flower_x_train, &flower_y_train)
-    //     .expect("failed to train model of flowers");
+    // Naive bayes bernoulli
+    let mut model = NaiveBayes::<Bernoulli>::new();
+    model.train(&flower_x_train, &flower_y_train_onehot)
+        .expect("failed to train model of flowers");
 
     // // How many classes do I h ave?
-    // // println!("{:?}", model.class_prior());
+    // println!("{:?}", model.class_prior());
 
-    // // Creating some dummy test data.
-    // let test_matrix = Matrix::ones(1, 4);
-    // let predictions = model.predict(&test_matrix)
-    //     .expect("Failed to predict");
+    // Creating some dummy test data.
+    let test_matrix = Matrix::ones(1, 4);
+    let _ = model.predict(&test_matrix)?;
 
-    // // predict
-    // let predictions = model.predict(&flower_x_test)
-    //     .expect("failed to make predictions on the test data.");
-    // let predictions = predictions.into_vec();
+    // predict
+    let predictions = model.predict(&flower_x_test)?;
+    let predictions = predictions.into_vec();
+    println!("{:?}", predictions);
 
-    // // Score how well we did
-    // let mut correct_hits = 0;
-    // let mut total_hits = 0;
-    // for (predicted, actual) in predictions.chunks(3).zip(flower_y_test.chunks(3)) {
-    //     if predicted == actual {
-    //         correct_hits += 1;
-    //     }
-    //     total_hits += 1;
-    // }
-    // println!("Naive Bayes Bernoulli: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+
+    // Score how well we did
+    let mut correct_hits = 0;
+    let mut total_hits = 0;
+    for (predicted, actual) in predictions.chunks(3).zip(flower_y_test_onehot.chunks(3)) {
+        if predicted == actual {
+            correct_hits += 1;
+        }
+        total_hits += 1;
+    }
+    println!("Naive Bayes Bernoulli: accuracy: {:?}", correct_hits as f64/total_hits as f64); // accuracy is quite good.
+
+    // this does not work all the time.
+    // let nb_bernoulli_acc = accuracy(predictions.iter(), flower_y_test_onehot.iter());
+    // println!("{:?}", nb_bernoulli_acc);
 
     // // Neural Network
 

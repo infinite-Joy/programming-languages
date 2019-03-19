@@ -157,5 +157,9 @@ fn main() -> Result<(), Box<Error>> {
     let classes = model.predict(&flower_x_test).unwrap();
     println!("classes from GMM: {:?}", classes);
 
+    let repeat_string = repeat("*********").take(10).collect::<String>();
+    println!("{}", repeat_string);
+    println!("");
+
     Ok(())
 }
