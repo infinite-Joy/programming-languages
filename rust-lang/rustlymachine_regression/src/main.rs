@@ -13,16 +13,17 @@ use std::str::SplitWhitespace;
 use std::path::Path;
 use std::fs::File;
 use std::vec::Vec;
+use std::iter::FromIterator;
 use std::error::Error;
 
 use rusty_machine;
 use rusty_machine::linalg::Matrix;
 use rusty_machine::linalg::Vector;
-use rusty_machine::learning::naive_bayes::{self, NaiveBayes};
-use rusty_machine::learning::nnet::{NeuralNet, BCECriterion};
 use rusty_machine::learning::toolkit::regularization::Regularization;
 use rusty_machine::learning::optim::grad_desc::StochasticGD;
 use rusty_machine::learning::lin_reg::LinRegressor;
+use rusty_machine::learning::gp;
+use rusty_machine::analysis::score::neg_mean_squared_error;
 use rusty_machine::learning::SupModel;
 use ndarray::{Array, arr1};
 use csv;
@@ -57,15 +58,15 @@ impl BostonHousing {
                         lstat: f64_formatted[12], medv: f64_formatted[13] }
     }
 
-    fn transform_chas(value: f64) -> f64 {
-        match value {
-            0. => -1.,
-            one => one,
+    fn transform_chas(&self, value: f64) -> f64 {
+        match value == 0. {
+            true => 2.,
+            false => value,
         }
     }
 
     fn into_feature_vector(&self) -> Vec<f64> {
-        vec![self.crim, self.zn, self.indus, , self.nox,
+        vec![self.crim, self.zn, self.indus, self.transform_chas(self.chas), self.nox,
              self.rm, self.age, self.dis, self.rad,
              self.tax, self.ptratio, self.black, self.lstat]
     }
@@ -95,7 +96,7 @@ fn get_boston_records_from_file(filename: impl AsRef<Path>) -> Vec<BostonHousing
 fn main() -> Result<(), Box<Error>> {
     // Get all the data
     let mut data = Vec::new();
-    let filename = "data/test.csv";
+    let filename = "data/housing.csv";
     let records = get_boston_records_from_file(&filename);
     for record in records {
         data.push(record);
@@ -112,9 +113,6 @@ fn main() -> Result<(), Box<Error>> {
     let train_size = train_data.len();
     let test_size = test_data.len();
 
-    println!("{:?}", data.len());
-    println!("{:?}", train_data.len());
-
     // differentiate the features and the labels.
     let boston_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
     let boston_y_train: Vec<f64> = train_data.iter().map(|r| r.into_labels()).collect();
@@ -122,31 +120,40 @@ fn main() -> Result<(), Box<Error>> {
     let boston_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
     let boston_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).collect();
 
-    // // using ndarray
-    let boston_x_train = Array::from_shape_vec((train_size, 13), boston_x_train).unwrap();
+    // using ndarray
+    // let boston_x_train = Array::from_shape_vec((train_size, 13), boston_x_train).unwrap();
     // let boston_y_train = Array::from_vec(boston_y_train);
     // let boston_x_test = Array::from_shape_vec((test_size, 13), boston_x_test).unwrap();
     // let boston_y_test = Array::from_vec(boston_y_test);
 
-    // // 
-
     // COnvert the data into matrices for rusty machine
-    // let boston_x_train = Matrix::new(train_size, 13, boston_x_train);
-    // let boston_y_train = Vector::new(boston_y_train);
-    // let boston_x_test = Matrix::new(test_size, 13, boston_x_test);
+    let boston_x_train = Matrix::new(train_size, 13, boston_x_train);
+    let boston_y_train = Vector::new(boston_y_train);
+    let boston_x_test = Matrix::new(test_size, 13, boston_x_test);
     // let boston_y_test = Vector::new(boston_y_test);
+    let boston_y_test = Matrix::new(test_size, 1, boston_y_test);
 
-    println!("{:?}", boston_x_train);
+    // Create a linear regression model
+    let mut lin_model = LinRegressor::default();
 
-    // let mut lin_model = LinRegressor::default();
+    // Train the model
+    lin_model.train(&boston_x_train, &boston_y_train)?;
 
-    // // Train the model
-    // lin_model.train(&boston_x_train, &boston_y_train)?;
+    // Now we will predict
+    let predictions = lin_model.predict(&boston_x_test).unwrap();
+    let predictions = Matrix::new(test_size, 1, predictions);
+    let acc = neg_mean_squared_error(&predictions, &boston_y_test);
+    println!("linear regression accuracy: {:?}", acc);
 
-    // // Now we will predict
-    // let new_point = Matrix::new(1, 1, vec![10.]);
-    // let output = lin_model.predict(&new_point);
+    // Create a gaussian process regression
+    let mut gaus_model = gp::GaussianProcess::default();
+    gaus_model.noise = 10f64;
+    gaus_model.train(&boston_x_train, &boston_y_train)?;
 
-    // println!("{:?}", output);
+    let predictions = gaus_model.predict(&boston_x_test).unwrap();
+    let predictions = Matrix::new(test_size, 1, predictions);
+    let acc = neg_mean_squared_error(&predictions, &boston_y_test);
+    println!("gaussian process regression accuracy: {:?}", acc);
+
     Ok(())
 }
