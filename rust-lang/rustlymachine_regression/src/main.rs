@@ -1,4 +1,5 @@
 /// Data gathered from https://www.kaggle.com/vikrishnan/boston-house-prices
+/// Boston dataset: https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html
 /// This module shows how to run regression models
 extern crate serde;
 // This lets us write `#[derive(Deserialize)]`.
