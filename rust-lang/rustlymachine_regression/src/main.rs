@@ -5,28 +5,22 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
-use std::process;
-use std::str::SplitWhitespace;
 use std::path::Path;
 use std::fs::File;
 use std::vec::Vec;
-use std::iter::FromIterator;
 use std::error::Error;
 
 use rusty_machine;
 use rusty_machine::linalg::Matrix;
 use rusty_machine::linalg::Vector;
-use rusty_machine::learning::toolkit::regularization::Regularization;
-use rusty_machine::learning::optim::grad_desc::StochasticGD;
 use rusty_machine::learning::lin_reg::LinRegressor;
 use rusty_machine::learning::gp;
+use rusty_machine::learning::glm::{GenLinearModel, Poisson};
 use rusty_machine::analysis::score::neg_mean_squared_error;
 use rusty_machine::learning::SupModel;
-use ndarray::{Array, arr1};
-use csv;
+// use ndarray::{Array, arr1};
 use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
@@ -154,6 +148,15 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
     println!("gaussian process regression accuracy: {:?}", acc);
+
+    // Create a poisson generalised linear mode
+    let mut poisson_glm_model = GenLinearModel::new(Poisson);
+    poisson_glm_model.train(&boston_x_train, &boston_y_train)?;
+
+    let predictions = poisson_glm_model.predict(&boston_x_test).unwrap();
+    let predictions = Matrix::new(test_size, 1, predictions);
+    let acc = neg_mean_squared_error(&predictions, &boston_y_test);
+    println!("glm poisson accuracy: {:?}", acc);
 
     Ok(())
 }
