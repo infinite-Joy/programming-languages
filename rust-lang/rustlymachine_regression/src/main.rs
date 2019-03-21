@@ -53,15 +53,8 @@ impl BostonHousing {
                         lstat: f64_formatted[12], medv: f64_formatted[13] }
     }
 
-    fn transform_chas(&self, value: f64) -> f64 {
-        match value == 0. {
-            true => 2.,
-            false => value,
-        }
-    }
-
     fn into_feature_vector(&self) -> Vec<f64> {
-        vec![self.crim, self.zn, self.indus, self.transform_chas(self.chas), self.nox,
+        vec![self.crim, self.zn, self.indus, self.chas, self.nox,
              self.rm, self.age, self.dis, self.rad,
              self.tax, self.ptratio, self.black, self.lstat]
     }
