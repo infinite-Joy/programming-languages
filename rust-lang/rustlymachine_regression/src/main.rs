@@ -83,12 +83,8 @@ fn get_boston_records_from_file(filename: impl AsRef<Path>) -> Vec<BostonHousing
 
 fn main() -> Result<(), Box<Error>> {
     // Get all the data
-    let mut data = Vec::new();
     let filename = "data/housing.csv";
-    let records = get_boston_records_from_file(&filename);
-    for record in records {
-        data.push(record);
-    }
+    let mut data = get_boston_records_from_file(&filename);
 
     // shuffle the data.
     data.shuffle(&mut thread_rng());
