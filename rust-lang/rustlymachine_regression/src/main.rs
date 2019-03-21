@@ -17,7 +17,9 @@ use rusty_machine;
 use rusty_machine::linalg::Matrix;
 use rusty_machine::linalg::Vector;
 use rusty_machine::learning::lin_reg::LinRegressor;
-use rusty_machine::learning::gp;
+use rusty_machine::learning::gp::GaussianProcess;
+use rusty_machine::learning::gp::ConstMean;
+use rusty_machine::learning::toolkit::kernel;
 use rusty_machine::learning::glm::{GenLinearModel, Poisson};
 use rusty_machine::analysis::score::neg_mean_squared_error;
 use rusty_machine::learning::SupModel;
@@ -119,6 +121,7 @@ fn main() -> Result<(), Box<Error>> {
 
     // Create a linear regression model
     let mut lin_model = LinRegressor::default();
+    println!("{:?}", lin_model);
 
     // Train the model
     lin_model.train(&boston_x_train, &boston_y_train)?;
@@ -127,17 +130,24 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = lin_model.predict(&boston_x_test).unwrap();
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
-    println!("linear regression accuracy: {:?}", acc);
+    println!("linear regression error: {:?}", acc);
 
     // Create a gaussian process regression
-    let mut gaus_model = gp::GaussianProcess::default();
-    gaus_model.noise = 10f64;
+    // A squared exponential kernel with lengthscale 2 and amplitude 1
+    let ker = kernel::SquaredExp::new(2., 1.);
+
+    // zero function as mean function
+    let zero_mean = ConstMean::default();
+
+    // defining the model with noise 10
+    let mut gaus_model = GaussianProcess::new(ker, zero_mean, 10f64);
+    
     gaus_model.train(&boston_x_train, &boston_y_train)?;
 
     let predictions = gaus_model.predict(&boston_x_test).unwrap();
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
-    println!("gaussian process regression accuracy: {:?}", acc);
+    println!("gaussian process regression error: {:?}", acc);
 
     // Create a poisson generalised linear mode
     let mut poisson_glm_model = GenLinearModel::new(Poisson);
