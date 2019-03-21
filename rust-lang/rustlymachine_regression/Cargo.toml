@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 rusty-machine = "*"
-csv = "1"
 serde = "1"
 serde_derive = "1"
 rand = "0.6.5"
