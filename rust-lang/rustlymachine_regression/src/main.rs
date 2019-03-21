@@ -132,6 +132,7 @@ fn main() -> Result<(), Box<Error>> {
 
     // Create a linear regression model
     let mut lin_model = LinRegressor::default();
+    println!("{:?}", lin_model);
 
     // Train the model
     lin_model.train(&boston_x_train, &boston_y_train)?;
@@ -140,7 +141,7 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = lin_model.predict(&boston_x_test).unwrap();
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
-    println!("linear regression accuracy: {:?}", acc);
+    println!("linear regression error: {:?}", acc);
 
     // Create a gaussian process regression
     // A squared exponential kernel with lengthscale 2 and amplitude 1
@@ -157,7 +158,7 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = gaus_model.predict(&boston_x_test).unwrap();
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
-    println!("gaussian process regression accuracy: {:?}", acc);
+    println!("gaussian process regression error: {:?}", acc);
 
     // Create a poisson generalised linear mode
     let mut poisson_glm_model = GenLinearModel::new(Poisson);
