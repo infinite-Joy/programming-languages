@@ -8,13 +8,14 @@ use std::vec::Vec;
 use std::error::Error;
 use std::iter::repeat;
 
-use rusty_machine;
-// use rusty_machine::linalg::{Matrix, BaseMatrix};
-use rusty_machine::linalg::Matrix;
-use rusty_machine::learning::k_means::KMeansClassifier;
-use rusty_machine::learning::gmm::{CovOption, GaussianMixtureModel};
-use rusty_machine::learning::dbscan::DBSCAN;
-use rusty_machine::learning::UnSupModel;
+use rusty_machine as rm;
+// use rm::linalg::{Matrix, BaseMatrix};
+use rm::linalg::Matrix;
+use rm::learning::k_means::KMeansClassifier;
+use rm::learning::gmm::{CovOption, GaussianMixtureModel};
+use rm::learning::dbscan::DBSCAN;
+use rm::learning::pca::PCA;
+use rm::learning::UnSupModel;
 use csv;
 use rand;
 use rand::thread_rng;
@@ -160,6 +161,9 @@ fn main() -> Result<(), Box<Error>> {
     let repeat_string = repeat("*********").take(10).collect::<String>();
     println!("{}", repeat_string);
     println!("");
+
+    // pca
+    let mut model = PCA::default();
 
     Ok(())
 }

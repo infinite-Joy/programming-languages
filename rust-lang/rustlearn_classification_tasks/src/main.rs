@@ -51,8 +51,6 @@ impl Flower {
     }
 }
 
-
-
 fn read_csv() -> Result<(), Box<Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());

@@ -5,8 +5,8 @@ authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-rusty-machine = "*"
+rusty-machine = "0.5.4"#{ path = "/home/saionee/opensource/programming-languages/rust-lang/rusty-machine" }
 serde = "1"
 serde_derive = "1"
 rand = "0.6.5"
-ndarray = "0.11.0"
+#ndarray = "0.12.1"

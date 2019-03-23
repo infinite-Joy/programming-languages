@@ -20,7 +20,7 @@ use rusty_machine::learning::lin_reg::LinRegressor;
 use rusty_machine::learning::gp::GaussianProcess;
 use rusty_machine::learning::gp::ConstMean;
 use rusty_machine::learning::toolkit::kernel;
-use rusty_machine::learning::glm::{GenLinearModel, Poisson};
+use rusty_machine::learning::glm::{GenLinearModel, Normal};
 use rusty_machine::analysis::score::neg_mean_squared_error;
 use rusty_machine::learning::SupModel;
 // use ndarray::{Array, arr1};
@@ -124,7 +124,7 @@ fn main() -> Result<(), Box<Error>> {
     println!("{:?}", lin_model);
 
     // Train the model
-    lin_model.train(&boston_x_train, &boston_y_train)?;
+    lin_model.train_with_optimization(&boston_x_train, &boston_y_train);
 
     // Now we will predict
     let predictions = lin_model.predict(&boston_x_test).unwrap();
@@ -141,7 +141,7 @@ fn main() -> Result<(), Box<Error>> {
 
     // defining the model with noise 10
     let mut gaus_model = GaussianProcess::new(ker, zero_mean, 10f64);
-    
+
     gaus_model.train(&boston_x_train, &boston_y_train)?;
 
     let predictions = gaus_model.predict(&boston_x_test).unwrap();
@@ -150,7 +150,7 @@ fn main() -> Result<(), Box<Error>> {
     println!("gaussian process regression error: {:?}", acc);
 
     // Create a poisson generalised linear mode
-    let mut poisson_glm_model = GenLinearModel::new(Poisson);
+    let mut poisson_glm_model = GenLinearModel::new(Normal);
     poisson_glm_model.train(&boston_x_train, &boston_y_train)?;
 
     let predictions = poisson_glm_model.predict(&boston_x_test).unwrap();
