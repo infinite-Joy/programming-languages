@@ -23,6 +23,7 @@ use rusty_machine::learning::toolkit::kernel;
 use rusty_machine::learning::glm::{GenLinearModel, Normal};
 use rusty_machine::analysis::score::neg_mean_squared_error;
 use rusty_machine::learning::SupModel;
+
 // use ndarray::{Array, arr1};
 use rand;
 use rand::thread_rng;
