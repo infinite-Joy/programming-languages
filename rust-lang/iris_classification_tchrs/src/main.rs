@@ -67,16 +67,10 @@ fn read_csv() -> Result<(), Box<Error>> {
     let test_size: f64 = data.len() as f64 * test_size;
     let test_size = test_size.round() as usize;
     let feature_length = 4;
-    // we are keeping the val size to be the same as test_size.
-    // this can be changed if required
-    //let val_size  = test_size.clone();
 
-    let (test_data, train_and_val_data) = data.split_at(test_size);
-    //let (val_data, train_data) = train_and_val_data.split_at(val_size);
-    let train_data = train_and_val_data;
+    let (test_data, train_data) = data.split_at(test_size);
     let train_size = train_data.len();
     let test_size = test_data.len();
-    //let val_size = val_data.len();
     assert_eq!(train_size, test_size);
 
     // differentiate the features and the labels.
@@ -87,19 +81,10 @@ fn read_csv() -> Result<(), Box<Error>> {
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
     let flower_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).collect();
 
-    //let flower_x_val: Vec<f64> = val_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    //let flower_y_val: Vec<f64> = val_data.iter().map(|r| r.into_labels()).collect();
-
-    //let mut t = Tensor::float_vec(&vec![1.1, 2.1, 3.1]);
     let flower_x_train = Tensor::float_vec(flower_x_train.as_slice());
     let flower_y_train = Tensor::float_vec(flower_y_train.as_slice()).to_kind(Kind::Int64);
-    //let flower_y_train = Tensor::float_vec(flower_y_train.as_slice());
     let flower_x_test = Tensor::float_vec(flower_x_test.as_slice());
     let flower_y_test = Tensor::float_vec(flower_y_test.as_slice()).to_kind(Kind::Int64);
-
-    // need to unsqueeze the labels as this is one dimensional
-    //let flower_y_train = flower_y_train.unsqueeze(0);
-    //let flower_y_train = flower_y_train.squeeze_();
 
     // print shape of all the data.
     println!("Training data shape {:?}", flower_x_train.size());
@@ -120,7 +105,7 @@ fn read_csv() -> Result<(), Box<Error>> {
     let mut bs = Tensor::rand(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
 
 
-    for epoch in 1..2 {
+    for epoch in 1..200 {
         let logits = flower_x_train.mm(&ws) + &bs;
         let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
         ws.zero_grad();
@@ -145,109 +130,5 @@ fn read_csv() -> Result<(), Box<Error>> {
         );
     }
 
-    //println!("before updating: {:?}", ws);
-    //ws.print();
-    ////println!("{:?}", bs);
-    ////bs.print();
-    //let logits = flower_x_train.mm(&ws) + &bs;
-    //let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
-    //ws.zero_grad();
-    //bs.zero_grad();
-    //loss.backward();
-    //no_grad(|| {
-    //    ws += ws.grad() * (-1);
-    //    bs += bs.grad() * (-1);
-    //});
-    //let test_logits = flower_x_test.mm(&ws) + &bs;
-    //let test_accuracy = test_logits
-    //    .argmax1(-1, false)
-    //    .eq1(&flower_y_test)
-    //    .to_kind(Kind::Float)
-    //    .mean()
-    //    .double_value(&[]);
-    //println!(
-    //    "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-    //    1,
-    //    loss.double_value(&[]),
-    //    100. * test_accuracy
-    //);
-
-    //println!("after updating: {:?}", ws);
-    //ws.print();
-    //println!("{:?}", bs);
-    //bs.print();
-    //let logits = flower_x_train.mm(&ws) + &bs;
-    //let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
-    //ws.zero_grad();
-    //bs.zero_grad();
-    //loss.backward();
-    //no_grad(|| {
-    //    ws += ws.grad() * (-1);
-    //    bs += bs.grad() * (-1);
-    //});
-    //let test_logits = flower_x_test.mm(&ws) + &bs;
-    //let test_accuracy = test_logits
-    //    .argmax1(-1, false)
-    //    .eq1(&flower_y_test)
-    //    .to_kind(Kind::Float)
-    //    .mean()
-    //    .double_value(&[]);
-    //println!(
-    //    "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-    //    1,
-    //    loss.double_value(&[]),
-    //    100. * test_accuracy
-    //);
-    //println!("{:?}", ws);
-    //ws.print();
-    //println!("{:?}", bs);
-    //bs.print();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //let logits = flower_x_train.mm(&ws) + &bs;
-    //let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
-    //ws.zero_grad();
-    //bs.zero_grad();
-    //loss.backward();
-    //no_grad(|| {
-    //    ws += ws.grad() * (-1);
-    //    bs += bs.grad() * (-1);
-    //});
-    //let test_logits = flower_x_test.mm(&ws) + &bs;
-    //let test_accuracy = test_logits
-    //    .argmax1(-1, false)
-    //    .eq1(&flower_y_test)
-    //    .to_kind(Kind::Float)
-    //    .mean()
-    //    .double_value(&[]);
-    //println!(
-    //    "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-    //    1,
-    //    loss.double_value(&[]),
-    //    100. * test_accuracy
-    //);
     Ok(())
 }
