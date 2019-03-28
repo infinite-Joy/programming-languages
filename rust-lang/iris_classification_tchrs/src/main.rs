@@ -14,15 +14,37 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 use tch;
-use tch::{kind, Kind, Tensor, no_grad, vision};
+use tch::{nn, kind, Kind, Tensor, no_grad, vision, Device};
+use tch::{nn::Module, nn::OptimizerConfig};
 
-static IMAGE_DIM: i64 = 784;
-static LABELS: i64 = 1;
+static FEATURE_DIM: i64 = 4;
+static HIDDEN_NODES: i64 = 10;
+static LABELS: i64 = 3;
 
 fn main() {
     if let Err(err) = read_csv() {
         println!("{}", err);
         process::exit(1);
+    }
+}
+
+#[derive(Debug)]
+struct Net {
+    fc1: nn::Linear,
+    fc2: nn::Linear,
+}
+
+impl Net {
+    fn new(vs: &nn::Path) -> Net {
+        let fc1 = nn::Linear::new(vs, FEATURE_DIM, HIDDEN_NODES, Default::default());
+        let fc2 = nn::Linear::new(vs, HIDDEN_NODES, LABELS, Default::default());
+        Net { fc1, fc2 }
+    }
+}
+
+impl Module for Net {
+    fn forward(&self, xs: &Tensor) -> Tensor {
+        xs.apply(&self.fc1).relu().apply(&self.fc2)
     }
 }
 
@@ -51,6 +73,7 @@ impl Flower {
 }
 
 fn read_csv() -> Result<(), Box<Error>> {
+//fn read_csv() -> failure::Fallible<()> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
@@ -66,7 +89,6 @@ fn read_csv() -> Result<(), Box<Error>> {
     let test_size: f64 = 0.5;
     let test_size: f64 = data.len() as f64 * test_size;
     let test_size = test_size.round() as usize;
-    let feature_length = 4;
 
     let (test_data, train_data) = data.split_at(test_size);
     let train_size = train_data.len();
@@ -96,39 +118,59 @@ fn read_csv() -> Result<(), Box<Error>> {
     //println!("Training data shape {:?}", flower_x_train1.size());
     let train_size = train_size as i64;
     let test_size = test_size as i64;
-    let flower_x_train = flower_x_train.view(&[train_size, feature_length]);
-    let flower_x_test = flower_x_test.view(&[test_size, feature_length]);
+    let flower_x_train = flower_x_train.view(&[train_size, FEATURE_DIM]);
+    let flower_x_test = flower_x_test.view(&[test_size, FEATURE_DIM]);
     let flower_y_train = flower_y_train.view(&[train_size]);
     let flower_y_test = flower_y_test.view(&[test_size]);
 
-    let mut ws = Tensor::rand(&[feature_length, 1], kind::FLOAT_CPU).set_requires_grad(true);
-    let mut bs = Tensor::rand(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
-
-
-    for epoch in 1..200 {
-        let logits = flower_x_train.mm(&ws) + &bs;
-        let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
-        ws.zero_grad();
-        bs.zero_grad();
-        loss.backward();
-        no_grad(|| {
-            ws += ws.grad() * (-1);
-            bs += bs.grad() * (-1);
-        });
-        let test_logits = flower_x_test.mm(&ws) + &bs;
-        let test_accuracy = test_logits
-            .argmax1(-1, false)
-            .eq1(&flower_y_test)
-            .to_kind(Kind::Float)
-            .mean()
-            .double_value(&[]);
+    // working on a linear neural network with SGD
+let vs = nn::VarStore::new(Device::Cpu);
+let net = Net::new(&vs.root());
+let opt = nn::Adam::default().build(&vs, 1e-3)?;
+for epoch in 1..200 {
+        let loss = net
+            .forward(&flower_x_train)
+            .cross_entropy_for_logits(&flower_y_train);
+        opt.backward_step(&loss);
+        let test_accuracy = net
+            .forward(&flower_x_test)
+            .accuracy_for_logits(&flower_y_test);
         println!(
             "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
             epoch,
-            loss.double_value(&[]),
-            100. * test_accuracy
+            f64::from(&loss),
+            100. * f64::from(&test_accuracy),
         );
-    }
+}
+
+    // let mut ws = Tensor::rand(&[feature_length, 1], kind::FLOAT_CPU).set_requires_grad(true);
+    // let mut bs = Tensor::rand(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
+
+
+    // for epoch in 1..200 {
+    //     let logits = flower_x_train.mm(&ws) + &bs;
+    //     let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
+    //     ws.zero_grad();
+    //     bs.zero_grad();
+    //     loss.backward();
+    //     no_grad(|| {
+    //         ws += ws.grad() * (-1);
+    //         bs += bs.grad() * (-1);
+    //     });
+    //     let test_logits = flower_x_test.mm(&ws) + &bs;
+    //     let test_accuracy = test_logits
+    //         .argmax1(-1, false)
+    //         .eq1(&flower_y_test)
+    //         .to_kind(Kind::Float)
+    //         .mean()
+    //         .double_value(&[]);
+    //     println!(
+    //         "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
+    //         epoch,
+    //         loss.double_value(&[]),
+    //         100. * test_accuracy
+    //     );
+    // }
 
     Ok(())
 }
