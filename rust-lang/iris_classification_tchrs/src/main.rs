@@ -14,7 +14,7 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 use tch;
-use tch::{kind, Kind, Tensor, no_grad, vision};
+use tch::{nn, kind, Kind, Tensor, no_grad, vision};
 
 static IMAGE_DIM: i64 = 784;
 static LABELS: i64 = 1;
@@ -101,8 +101,8 @@ fn read_csv() -> Result<(), Box<Error>> {
     let flower_y_train = flower_y_train.view(&[train_size]);
     let flower_y_test = flower_y_test.view(&[test_size]);
 
-    let mut ws = Tensor::rand(&[feature_length, 1], kind::FLOAT_CPU).set_requires_grad(true);
-    let mut bs = Tensor::rand(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
+    let mut ws = Tensor::ones(&[feature_length], kind::FLOAT_CPU).set_requires_grad(true);
+    let mut bs = Tensor::ones(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
 
 
     for epoch in 1..200 {
