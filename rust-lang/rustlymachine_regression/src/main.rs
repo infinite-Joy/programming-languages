@@ -15,6 +15,7 @@ use std::error::Error;
 
 use rusty_machine;
 use rusty_machine::linalg::Matrix;
+use rusty_machine::linalg::BaseMatrix;
 use rusty_machine::linalg::Vector;
 use rusty_machine::learning::lin_reg::LinRegressor;
 use rusty_machine::learning::gp::GaussianProcess;
@@ -82,7 +83,24 @@ fn get_boston_records_from_file(filename: impl AsRef<Path>) -> Vec<BostonHousing
         .collect()
 }
 
+fn r_squared_score(y_test: &Vec<f64>, y_preds: &Vec<f64>) -> f64 {
+    let model_variance: f64 = y_test.iter().zip(y_preds.iter()).fold(
+        0., |v, (y_i, y_i_hat)| {
+            v + (y_i - y_i_hat).powi(2)
+        }
+    );
 
+    // get the mean for the actual values to be used later
+    let y_test_mean = y_test.iter().sum::<f64>() as f64
+        / y_test.len() as f64;
+
+    // finding the variance
+    let variance =  y_test.iter().fold(
+        0., |v, &x| {v + (x - y_test_mean).powi(2)}
+    );
+    let r2_calculated: f64 = 1.0 - (model_variance / variance);
+    r2_calculated
+}
 
 fn main() -> Result<(), Box<Error>> {
     // Get all the data
@@ -132,6 +150,8 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
     println!("linear regression error: {:?}", acc);
+    println!("linear regression R2 score: {:?}", r_squared_score(
+        &boston_y_test.data(), &predictions.data()));
 
     // Create a gaussian process regression
     // A squared exponential kernel with lengthscale 2 and amplitude 1
@@ -149,6 +169,8 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
     println!("gaussian process regression error: {:?}", acc);
+    println!("gaussian process regression R2 score: {:?}", r_squared_score(
+        &boston_y_test.data(), &predictions.data()));
 
     // Create a poisson generalised linear mode
     let mut poisson_glm_model = GenLinearModel::new(Normal);
@@ -158,6 +180,8 @@ fn main() -> Result<(), Box<Error>> {
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
     println!("glm poisson accuracy: {:?}", acc);
+    println!("glm poisson R2 score: {:?}", r_squared_score(
+        &boston_y_test.data(), &predictions.data()));
 
     Ok(())
 }
