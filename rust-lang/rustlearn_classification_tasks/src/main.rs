@@ -51,6 +51,27 @@ impl Flower {
     }
 }
 
+fn accuracy(y_test: &Vec<f32>, y_preds: &Vec<f32>) -> f32 {
+    let mut correct_hits = 0;
+    for (predicted, actual) in y_preds.iter().zip(y_test.iter()) {
+        if predicted == actual {
+            correct_hits += 1;
+        }
+    }
+    let acc: f32 = correct_hits as f32 / y_test.len() as f32;
+    acc
+}
+
+fn logloss(y_test: &Vec<f32>, y_preds: &Vec<f32>) -> f32 {
+    // complete this http://wiki.fast.ai/index.php/Log_Loss#Log_Loss_vs_Cross-Entropy
+    for (predicted, actual) in y_preds.iter().zip(y_test.iter()) {
+        if actual == 1. {
+
+        }
+    }
+    *y_test.first().unwrap() as f32
+}
+
 fn read_csv() -> Result<(), Box<Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
@@ -106,9 +127,9 @@ fn read_csv() -> Result<(), Box<Error>> {
 
     let prediction = model.predict(&flower_x_test).unwrap();
 
-    let accuracy = accuracy_score(&flower_y_test, &prediction);
+    let acc = accuracy_score(&flower_y_test, &prediction);
 
-    println!("Random Forest: accuracy: {:?}", accuracy);
+    println!("Random Forest: accuracy: {:?}", acc);
 
     // working with Stochastic Gradient descent.
     // uses adaptive per parameter learning rate Adagrad
@@ -124,8 +145,10 @@ fn read_csv() -> Result<(), Box<Error>> {
     }
 
     let prediction = model.predict(&flower_x_test).unwrap();
-    let accuracy = accuracy_score(&flower_y_test, &prediction);
-    println!("Logistic Regression: accuracy: {:?}", accuracy);
+    let acc1 = accuracy_score(&flower_y_test, &prediction);
+    let acc2 = accuracy(&flower_y_test.data(), &prediction.data());
+    println!("Logistic Regression: accuracy: {:?}", acc1);
+    println!("Logistic Regression: accuracy: {:?}", acc2);
 
     // Working with svms
     let svm_linear_model = libsvm_svc::new(4, KernelType::Linear, 3)
@@ -146,9 +169,13 @@ fn read_csv() -> Result<(), Box<Error>> {
         svm_model.fit(&flower_x_train, &flower_y_train).unwrap();
 
         let prediction = svm_model.predict(&flower_x_test).unwrap();
-        let accuracy = accuracy_score(&flower_y_test, &prediction);
-        println!("Lib svm {kernel}: accuracy: {accuracy}", accuracy=accuracy, kernel=kernel_type);
+        let acc = accuracy_score(&flower_y_test, &prediction);
+        println!("Lib svm {kernel}: accuracy: {accuracy}", accuracy=acc, kernel=kernel_type);
     };
+
+    println!("{:?}", logloss(&flower_y_test.data(), &prediction.data()));
+
+
 
     Ok(())
 }
