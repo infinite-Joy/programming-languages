@@ -7,6 +7,7 @@ use std::io;
 use std::process;
 use std::vec::Vec;
 use std::error::Error;
+use std::cmp::Ordering;
 
 use csv;
 use rand;
@@ -62,14 +63,35 @@ fn accuracy(y_test: &Vec<f32>, y_preds: &Vec<f32>) -> f32 {
     acc
 }
 
-fn logloss(y_test: &Vec<f32>, y_preds: &Vec<f32>) -> f32 {
+fn logloss_score(y_test: &Vec<f32>, y_preds: &Vec<f32>, eps: f32) -> f32 {
     // complete this http://wiki.fast.ai/index.php/Log_Loss#Log_Loss_vs_Cross-Entropy
-    for (predicted, actual) in y_preds.iter().zip(y_test.iter()) {
-        if actual == 1. {
-
+    let y_preds = y_preds.iter().map(|&p| {
+        match p.partial_cmp(&(1.0 - eps)) {
+            Some(Ordering::Less) => p,
+            _ => 1.0 - eps, // if equal or greater.
         }
+    });
+    let y_preds = y_preds.map(|p| {
+        match p.partial_cmp(&eps) {
+            Some(Ordering::Less) => eps,
+            _ => p,
+        }
+    });
+
+
+    // Now compute the logloss
+    let mut logloss_vals = vec![];
+    for (predicted, &actual) in y_preds.zip(y_test.iter()) {
+        let logloss = if actual as f32 == 1.0 {
+            (-1.0) * predicted.ln()
+        } else if actual as f32 == 0.0 {
+            (-1.0) * (1.0 - predicted).ln()
+        } else {
+            panic!("Not supported. y_preds should be either 0 or 1");
+        };
+        logloss_vals.push(logloss);
     }
-    *y_test.first().unwrap() as f32
+    logloss_vals.iter().sum()
 }
 
 fn read_csv() -> Result<(), Box<Error>> {
@@ -173,7 +195,9 @@ fn read_csv() -> Result<(), Box<Error>> {
         println!("Lib svm {kernel}: accuracy: {accuracy}", accuracy=acc, kernel=kernel_type);
     };
 
-    println!("{:?}", logloss(&flower_y_test.data(), &prediction.data()));
+    let preds = vec![1., 0.0001, 0.908047338626, 0.0199900075962, 0.904058545833, 0.321508119045, 0.657086320195];
+    let actuals = vec![1., 0., 0., 1., 1., 0., 0.];
+    println!("{:?}", logloss_score(&actuals, &preds, 1e-15));
 
 
 
