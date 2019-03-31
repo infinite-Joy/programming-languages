@@ -78,20 +78,17 @@ fn logloss_score(y_test: &Vec<f32>, y_preds: &Vec<f32>, eps: f32) -> f32 {
         }
     });
 
-
     // Now compute the logloss
-    let mut logloss_vals = vec![];
-    for (predicted, &actual) in y_preds.zip(y_test.iter()) {
-        let logloss = if actual as f32 == 1.0 {
+    let logloss_vals = y_preds.zip(y_test.iter()).map(|(predicted, &actual)| {
+        if actual as f32 == 1.0 {
             (-1.0) * predicted.ln()
         } else if actual as f32 == 0.0 {
             (-1.0) * (1.0 - predicted).ln()
         } else {
             panic!("Not supported. y_preds should be either 0 or 1");
-        };
-        logloss_vals.push(logloss);
-    }
-    logloss_vals.iter().sum()
+        }
+    });
+    logloss_vals.sum()
 }
 
 fn read_csv() -> Result<(), Box<Error>> {
