@@ -19,7 +19,7 @@ use rustlearn::ensemble::random_forest::Hyperparameters as randomforest;
 use rustlearn::trees::decision_tree;
 use rustlearn::linear_models::sgdclassifier::Hyperparameters as logistic_regression;
 use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
-use rustlearn::metrics::accuracy_score;
+use rustlearn::metrics::{accuracy_score, roc_auc_score};
 
 fn main() {
     if let Err(err) = read_csv() {
@@ -85,7 +85,7 @@ fn logloss_score(y_test: &Vec<f32>, y_preds: &Vec<f32>, eps: f32) -> f32 {
         } else if actual as f32 == 0.0 {
             (-1.0) * (1.0 - predicted).ln()
         } else {
-            panic!("Not supported. y_preds should be either 0 or 1");
+            panic!("Invalid labels: target data is not either 0.0 or 1.0");
         }
     });
     logloss_vals.sum()
@@ -145,10 +145,9 @@ fn read_csv() -> Result<(), Box<Error>> {
     // let decoded: OneVsRestWrapper<RandomForest> = bincode::rustc_serialize::decode(&encoded).unwrap();
 
     let prediction = model.predict(&flower_x_test).unwrap();
-
     let acc = accuracy_score(&flower_y_test, &prediction);
-
     println!("Random Forest: accuracy: {:?}", acc);
+
 
     // working with Stochastic Gradient descent.
     // uses adaptive per parameter learning rate Adagrad
@@ -194,9 +193,8 @@ fn read_csv() -> Result<(), Box<Error>> {
 
     let preds = vec![1., 0.0001, 0.908047338626, 0.0199900075962, 0.904058545833, 0.321508119045, 0.657086320195];
     let actuals = vec![1., 0., 0., 1., 1., 0., 0.];
-    println!("{:?}", logloss_score(&actuals, &preds, 1e-15));
-
-
+    println!("logloss score: {:?}", logloss_score(&actuals, &preds, 1e-15));
+    println!("roc auc scores: {:?}", roc_auc_score(&Array::from(actuals), &Array::from(preds))?);
 
     Ok(())
 }
