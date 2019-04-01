@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<Error>> {
     // Predict the classes and partition into
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
-    println!("classes: {:?}", classes);
+    println!("number of classes from kmeans: {:?}", classes.data().len());
     // println!("{:?}", classes.data().len());
     // println!("{:?}", flower_y_test);
     let repeat_string = repeat("*********").take(10).collect::<String>();
@@ -128,12 +128,12 @@ fn main() -> Result<(), Box<Error>> {
     // Predict the classes and partition into
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
-    println!("classes from GMM: {:?}", classes);
+    println!("number of classes from GMM: {:?}", classes.data().len());
     // println!("{:?}", classes.data().len());
     // println!("{:?}", flower_y_test);
 
     // Probabilities that each point comes from each Gaussian.
-    println!("Probablities from GMM: {:?}", classes.data());
+    println!("number of Probablities from GMM: {:?}", classes.data().len());
     let repeat_string = repeat("*********").take(10).collect::<String>();
     println!("{}", repeat_string);
     println!("");
@@ -160,8 +160,13 @@ fn main() -> Result<(), Box<Error>> {
     println!("{}", repeat_string);
     println!("");
 
-    let mut model = PCA::default();
+    // let mut model = PCA::default();
+    let mut model = PCA::new(2, true);
     model.train(&flower_x_train)?;
+
+    println!("{:?}", model.predict(&flower_x_test)?);
+    // println!("{:?}", model.components());
+
 
 
     Ok(())

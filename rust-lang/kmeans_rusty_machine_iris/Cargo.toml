@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 csv = "1.0.5"
 #rusty-machine="0.5.4"
-rusty-machine= { path = "/home/nineleaps/thinking/programming-languages/rust-lang/rusty-machine" }
+rusty-machine= { path = "../rusty-machine" }
 serde = "1"
 serde_derive = "1"
 rand = "0.6.5"
