@@ -151,19 +151,18 @@ fn main() -> Result<(), Box<Error>> {
 
     // clusters
     let clustering = model.clusters().unwrap();
-    println!("{:?}", clustering);
 
     // Predict the classes and partition into
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
-    println!("classes from GMM: {:?}", classes);
 
     let repeat_string = repeat("*********").take(10).collect::<String>();
     println!("{}", repeat_string);
     println!("");
 
-    // pca
     let mut model = PCA::default();
+    model.train(&flower_x_train)?;
+
 
     Ok(())
 }
