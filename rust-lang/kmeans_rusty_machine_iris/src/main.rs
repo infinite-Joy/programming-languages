@@ -111,8 +111,8 @@ fn main() -> Result<(), Box<Error>> {
     println!("");
 
     // Bring in Gaussian mixture models
-    // Create gmm with k(=3) classes.
-    let model_type = "Kmeans";
+    // Create gmm with k(=2) classes.
+    let model_type = "Mixture model";
     let mut model = GaussianMixtureModel::new(2);
     model.set_max_iters(10);
     model.cov_option = CovOption::Diagonal;
@@ -166,8 +166,6 @@ fn main() -> Result<(), Box<Error>> {
 
     println!("{:?}", model.predict(&flower_x_test)?);
     // println!("{:?}", model.components());
-
-
 
     Ok(())
 }
