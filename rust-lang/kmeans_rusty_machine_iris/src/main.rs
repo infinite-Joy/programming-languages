@@ -11,7 +11,7 @@ use std::iter::repeat;
 use rusty_machine as rm;
 // use rm::linalg::{Matrix, BaseMatrix};
 use rm::linalg::Matrix;
-use rm::learning::k_means::KMeansClassifier;
+use rm::learning::k_means::{KMeansClassifier, Forgy, RandomPartition};
 use rm::learning::gmm::{CovOption, GaussianMixtureModel};
 use rm::learning::dbscan::DBSCAN;
 use rm::learning::pca::PCA;
@@ -91,7 +91,8 @@ fn main() -> Result<(), Box<Error>> {
 
     // Create a Kmeans model with 3 clusters
     let model_type = "Kmeans";
-    let mut model = KMeansClassifier::new(clusters);
+    // let mut model = KMeansClassifier::new(clusters);
+    let mut model = KMeansClassifier::new_specified(5, 42, Forgy); // using the orgy method.
 
     //Train the model
     println!("Training the {} model", model_type);
