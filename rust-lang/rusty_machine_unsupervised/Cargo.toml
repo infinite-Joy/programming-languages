@@ -1,5 +1,5 @@
 [package]
-name = "kmeans_rusty_machine_iris"
+name = "rusty_machine_unsupervised"
 version = "0.1.0"
 authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"

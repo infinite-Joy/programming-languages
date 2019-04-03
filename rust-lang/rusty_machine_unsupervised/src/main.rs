@@ -11,7 +11,7 @@ use std::iter::repeat;
 use rusty_machine as rm;
 // use rm::linalg::{Matrix, BaseMatrix};
 use rm::linalg::Matrix;
-use rm::learning::k_means::{KMeansClassifier, Forgy, RandomPartition};
+use rm::learning::k_means::{KMeansClassifier, Forgy, RandomPartition, KPlusPlus};
 use rm::learning::gmm::{CovOption, GaussianMixtureModel};
 use rm::learning::dbscan::DBSCAN;
 use rm::learning::pca::PCA;
@@ -91,8 +91,27 @@ fn main() -> Result<(), Box<Error>> {
 
     // Create a Kmeans model with 3 clusters
     let model_type = "Kmeans";
-    // let mut model = KMeansClassifier::new(clusters);
-    let mut model = KMeansClassifier::new_specified(5, 42, Forgy); // using the orgy method.
+    let mut model = KMeansClassifier::new(clusters);
+
+    //Train the model
+    println!("Training the {} model", model_type);
+    model.train(&flower_x_train)?;
+
+    let centroids = model.centroids().as_ref().unwrap();
+    println!("Model Centroids:\n{:.3}", centroids);
+
+    // Predict the classes and partition into
+    println!("Predicting the samples...");
+    let classes = model.predict(&flower_x_test).unwrap();
+    println!("number of classes from kmeans: {:?}", classes.data().len());
+    // println!("{:?}", classes.data().len());
+    // println!("{:?}", flower_y_test);
+    let repeat_string = repeat("*********").take(10).collect::<String>();
+    println!("{}", repeat_string);
+    println!("");
+
+    // using a different initialising method.
+    let mut model = KMeansClassifier::new_specified(3, 100, Forgy); // can use the RandomPartition
 
     //Train the model
     println!("Training the {} model", model_type);
