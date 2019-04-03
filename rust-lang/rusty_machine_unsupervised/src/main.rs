@@ -82,13 +82,6 @@ fn main() -> Result<(), Box<Error>> {
     const features_num: usize = 4;
     const clusters: usize = 3;
 
-    // Choose 3 cluster centers.
-    let centroids = Matrix::new(clusters, features_num,
-        vec![ 1.97114409, -0.93866753,  1.47453329, -0.61102101,
-            -0.22826977,  1.6934484, -1.6573789 , -0.94710845,
-            -0.18181, -1.19016212, -1.88469035,  0.02483312]);
-    // println!("{}", centroids);
-
     // Create a Kmeans model with 3 clusters
     let model_type = "Kmeans";
     let mut model = KMeansClassifier::new(clusters);
@@ -134,7 +127,7 @@ fn main() -> Result<(), Box<Error>> {
     // Create gmm with k(=2) classes.
     let model_type = "Mixture model";
     let mut model = GaussianMixtureModel::new(2);
-    model.set_max_iters(10);
+    model.set_max_iters(1000);
     model.cov_option = CovOption::Diagonal;
 
     //Train the model
