@@ -45,6 +45,12 @@ impl Flower {
     }
 }
 
+fn output_separator() {
+    let repeat_string = repeat("*********").take(10).collect::<String>();
+    println!("{}", repeat_string);
+    println!("");
+}
+
 fn main() -> Result<(), Box<Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
@@ -154,7 +160,7 @@ fn main() -> Result<(), Box<Error>> {
     // DBscan slagorithm
     // eps = 0.3 and min_samples = 10
     let model_type = "DBScan";
-    let mut model = DBSCAN::new(0.5, 5);
+    let mut model = DBSCAN::new(0.3, 10);
     // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
     model.set_predictive(true);
 
@@ -169,16 +175,18 @@ fn main() -> Result<(), Box<Error>> {
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
 
-    let repeat_string = repeat("*********").take(10).collect::<String>();
-    println!("{}", repeat_string);
-    println!("");
+    output_separator();
 
-    // let mut model = PCA::default();
+    println!("Dimensionality reduction using PCA");
+    let mut model = PCA::default();
+    println!("{:?}", model);
     let mut model = PCA::new(2, true);
     model.train(&flower_x_train)?;
 
     println!("{:?}", model.predict(&flower_x_test)?);
-    // println!("{:?}", model.components());
+    println!("{:?}", model.components());
+
+    output_separator();
 
     Ok(())
 }
