@@ -9,26 +9,42 @@ use rand::distributions::{Bernoulli, Distribution};
 use itertools;
 use itertools::iproduct;
 use itertools::Itertools;
+use ndarray;
+use ndarray::{arr2, Array};
+use ndarray::prelude::*;
 
-fn contingency_table(cluster1: &Vec<Vec<f64>>, cluster2: &Vec<Vec<f64>>) -> Vec<std::vec::Vec<usize>> {
+// reference: https://github.com/Hoosier-Clusters/clusim/blob/master/clusim/sim.py
+
+fn contingency_table(cluster1: &Vec<Vec<f64>>, cluster2: &Vec<Vec<f64>>) -> Vec<std::vec::Vec<f64>> {
     let length = cluster1.len();
     assert!(length == cluster2.len());
     let product = iproduct!(cluster1, cluster2);
-    let cont_table_vec: Vec<usize> = product.map(
+    let cont_table_vec: Vec<f64> = product.map(
         |(c1, c2)| match c1.len().cmp(&c2.len()) {
-            Ordering::Less => c1.len(),
-            _ => c2.len(),
+            Ordering::Less => c1.len() as f64,
+            _ => c2.len() as f64,
         }
     ).collect();
-    let v_chunked: Vec<Vec<usize>> = cont_table_vec.chunks(length).map(|x| x.to_vec()).collect();
-    return v_chunked;
+    let a = Array::from_shape_vec((3, 3), cont_table_vec.clone());
+    println!("{:?}", a.clone().dot(&a) );
+    let v_chunked: Vec<Vec<f64>> = cont_table_vec.chunks(length).map(|x| x.to_vec()).collect();
+    v_chunked
+}
+
+fn count_pairwise_cooccurence(cluster1: &Vec<Vec<f64>>, cluster2: &Vec<Vec<f64>>) {
+    let cont_tbl = contingency_table(&cluster1, &cluster2);
+    // let a = arr2(&cont_tbl);
+
+
+    // let sum_of_squares = cont_tbl.iter().flat_map(|&num| num as f64 * num as f64).sum();
+    // println!("{:?}", sum_of_squares);
 }
 
 fn main() {
     let cluster1 = vec![vec![0.0f64,3.0,5.0, 6.0, 8.0], vec![1.0f64,7.0], vec![2.0f64,4.0]];
     let cluster2 = vec![vec![0.0f64,1.0], vec![2.0f64,5.0,6.0, 8.0], vec![3.0f64,4.0,7.0]];
-    let table = contingency_table(&cluster1, &cluster2);
-    println!("{:?}", table);
+    // let table = contingency_table(&cluster1, &cluster2);
+    count_pairwise_cooccurence(&cluster1, &cluster2)
 }
 
 #[cfg(test)]
