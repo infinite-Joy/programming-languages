@@ -2,83 +2,33 @@ use std::vec::Vec;
 use std::collections::HashMap;
 // use std::io::Error;
 use std::error::Error;
+use std::cmp::Ordering;
 
 use rand;
 use rand::distributions::{Bernoulli, Distribution};
+use itertools;
+use itertools::iproduct;
+use itertools::Itertools;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-enum User {
-    Group,
-    Converted,
-}
-
-fn generate_data(control_size: u32, test_size: u32, p_control: f64, p_test: f64) -> Vec<HashMap<User, bool>> {
-    // initiate empty container.
-    let mut data = vec![];
-
-    let total = control_size + test_size;
-    
-    let group_bern = Bernoulli::new(0.5); // we need to divide the whole population equally
-
-    let control_bern = Bernoulli::new(p_control);
-    let test_bern = Bernoulli::new(p_test);
-
-    for _ in 0..total {
-
-        let mut row = HashMap::new();
-        let v = group_bern.sample(&mut rand::thread_rng());
-        row.insert(User::Group, v);
-        
-        let converted_v = match v {
-            // true means control and false means test
-            true => control_bern.sample(&mut rand::thread_rng()),
-            false => test_bern.sample(&mut rand::thread_rng()),
-        };
-        row.insert(User::Converted, converted_v);
-        data.push(row);
-    }
-    data
-}
-
-fn find_rate_difference(data: &Vec<HashMap<User, bool>>) -> Result<f64, Box<Error>> {
-    let mut total_control_groups: usize = 0;
-    let mut converted_control_group: usize = 0;
-    let mut converted_test_group: usize = 0;
-    for d in data {
-        let user_group = d.get(&User::Group)
-            .expect("data must have group and converted");
-        let user_conversion = d.get(&User::Converted)
-            .expect("data must have group and converted");
-        if user_group == &true {
-            total_control_groups += 1;
-            if user_conversion == &true {
-                converted_control_group += 1;
-            }
-        } else {
-            if user_conversion == &true {
-                converted_test_group += 1;
-            }
+fn contingency_table(cluster1: &Vec<Vec<f64>>, cluster2: &Vec<Vec<f64>>) -> Vec<std::vec::Vec<usize>> {
+    let length = cluster1.len();
+    assert!(length == cluster2.len());
+    let product = iproduct!(cluster1, cluster2);
+    let cont_table_vec: Vec<usize> = product.map(
+        |(c1, c2)| match c1.len().cmp(&c2.len()) {
+            Ordering::Less => c1.len(),
+            _ => c2.len(),
         }
-    }
-    let total_test_group = data.len() - total_control_groups;
-    let control_rate = converted_control_group as f64/total_control_groups as f64;
-    let test_rate = converted_test_group as f64/total_test_group as f64;
-    Ok(test_rate - control_rate)
+    ).collect();
+    let v_chunked: Vec<Vec<usize>> = cont_table_vec.chunks(length).map(|x| x.to_vec()).collect();
+    return v_chunked;
 }
 
 fn main() {
-    // A is control and B is test
-    let control_size = 1000;
-    let test_size = 1000;
-
-    let bcr = 0.10;  // baseline conversion rate
-    let d_hat = 0.02;  // difference between the groups
-    let data = generate_data(control_size, test_size, bcr, bcr + d_hat); // we want data that is a little better than baseline.
-    println!("{:?}", data);
-
-    let x = find_rate_difference(&data);
-    println!("{:?}", x);
-
+    let cluster1 = vec![vec![0.0f64,3.0,5.0, 6.0, 8.0], vec![1.0f64,7.0], vec![2.0f64,4.0]];
+    let cluster2 = vec![vec![0.0f64,1.0], vec![2.0f64,5.0,6.0, 8.0], vec![3.0f64,4.0,7.0]];
+    let table = contingency_table(&cluster1, &cluster2);
+    println!("{:?}", table);
 }
 
 #[cfg(test)]
@@ -86,21 +36,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_generate_data() {
-        let data = generate_data(10, 10, 0.1, 0.02);
-        assert_eq!(data.len(), 20);
-        assert_eq!(data[0].contains_key(&User::Group), true);
+    fn test_contingency_table() {
+        let cluster1 = vec![vec![0.0f64,3.0,5.0, 6.0, 8.0], vec![1.0f64,7.0], vec![2.0f64,4.0]];
+        let cluster2 = vec![vec![0.0f64,1.0], vec![2.0f64,5.0,6.0, 8.0], vec![3.0f64,4.0,7.0]];
+        let table = contingency_table(&cluster1, &cluster2);
+        assert_eq!(table, [[2, 4, 3], [2, 2, 2], [2, 2, 2]]);
     }
-
-    #[test]
-    fn test_find_rate_difference() {
-        let mut data = vec![];
-        let data1: HashMap<_, _> = vec![(User::Group, false), (User::Converted, false)].into_iter().collect();
-        data.push(data1);
-        let data2: HashMap<_, _> = vec![(User::Group, true), (User::Converted, true)].into_iter().collect();
-        data.push(data2);
-        let res = find_rate_difference(&data).unwrap();
-        assert_eq!(res, -1.0);
-    }
-
 }
