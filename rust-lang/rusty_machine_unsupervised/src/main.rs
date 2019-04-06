@@ -7,6 +7,8 @@ use std::io;
 use std::vec::Vec;
 use std::error::Error;
 use std::iter::repeat;
+use std::collections::HashSet;
+use std::cmp::Ordering;
 
 use rusty_machine as rm;
 // use rm::linalg::{Matrix, BaseMatrix};
@@ -20,6 +22,8 @@ use csv;
 use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use ml_utils;
+use ml_utils::{jaccard_index, rand_index};
 
 #[derive(Debug, Deserialize)]
 struct Flower {
@@ -35,14 +39,57 @@ impl Flower {
         vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
     }
 
-    fn into_labels(&self) -> Vec<f64> {
+    fn into_labels(&self) -> u64 {
         match self.species.as_str() {
-            "setosa" => vec![1., 0., 0.],
-            "versicolor" => vec![0., 1., 0.],
-            "virginica" => vec![0., 0., 1.],
+            "setosa" => 0,
+            "versicolor" => 1,
+            "virginica" => 2,
             l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
         }
     }
+}
+
+fn flower_labels_clusters(iris_data: Vec<u64>) -> Vec<HashSet<u64>> {
+    let mut setosa = HashSet::new();
+    let mut versicolor = HashSet::new();
+    let mut virginica = HashSet::new();
+    for (index, flower) in iris_data.iter().enumerate() {
+        match flower  {
+            0 => setosa.insert(index as u64),
+            1 => versicolor.insert(index as u64),
+            2 => virginica.insert(index as u64),
+            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
+        };
+    };
+    vec![setosa, versicolor, virginica]
+}
+
+fn max_index(array: &[f64]) -> usize {
+    let mut i = 0;
+
+    for (j, &value) in array.iter().enumerate() {
+        // if value > array[i] {
+        match value.partial_cmp(&array[i]).unwrap() {
+            Ordering::Greater => i = j,
+            _ => (),
+        };
+    };
+    i
+}
+
+fn flower_labels_clusters_gmm(iris_data: &Vec<f64>) -> Vec<HashSet<u64>> {
+    let mut setosa = HashSet::new();
+    let mut versicolor = HashSet::new();
+    let mut virginica = HashSet::new();
+    for (index, flower) in iris_data.chunks(3).enumerate() {
+        match max_index(&flower) {
+            0 => setosa.insert(index as u64),
+            1 => versicolor.insert(index as u64),
+            2 => virginica.insert(index as u64),
+            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
+        };
+    }
+    vec![setosa, versicolor, virginica]
 }
 
 fn output_separator() {
@@ -73,10 +120,12 @@ fn main() -> Result<(), Box<Error>> {
 
     // differentiate the features and the labels.
     let flower_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    // let flower_y_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_labels()).collect();
+    let flower_y_train: Vec<u64> = train_data.iter().map(|r| r.into_labels()).collect();
+    let flower_y_train_clus: Vec<HashSet<u64>> = flower_labels_clusters(flower_y_train);
 
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    // let flower_y_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_labels()).collect();
+    let flower_y_test: Vec<u64> = test_data.iter().map(|r| r.into_labels()).collect();
+    let flower_y_test_clus: Vec<HashSet<u64>> = flower_labels_clusters(flower_y_test);
 
     // COnvert the data into matrices for rusty machine
     let flower_x_train = Matrix::new(train_size, 4, flower_x_train);
@@ -130,9 +179,9 @@ fn main() -> Result<(), Box<Error>> {
     println!("");
 
     // Bring in Gaussian mixture models
-    // Create gmm with k(=2) classes.
+    // Create gmm with k(=3) classes.
     let model_type = "Mixture model";
-    let mut model = GaussianMixtureModel::new(2);
+    let mut model = GaussianMixtureModel::new(3);
     model.set_max_iters(1000);
     model.cov_option = CovOption::Diagonal;
 
@@ -150,43 +199,50 @@ fn main() -> Result<(), Box<Error>> {
     println!("number of classes from GMM: {:?}", classes.data().len());
     // println!("{:?}", classes.data().len());
     // println!("{:?}", flower_y_test);
+    println!("{:?}", classes);
 
     // Probabilities that each point comes from each Gaussian.
     println!("number of Probablities from GMM: {:?}", classes.data().len());
-    let repeat_string = repeat("*********").take(10).collect::<String>();
-    println!("{}", repeat_string);
-    println!("");
 
-    // DBscan slagorithm
-    // eps = 0.3 and min_samples = 10
-    let model_type = "DBScan";
-    let mut model = DBSCAN::new(0.3, 10);
-    // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
-    model.set_predictive(true);
-
-    //Train the model
-    println!("Training the {} model", model_type);
-    model.train(&flower_x_train)?;
-
-    // clusters
-    let clustering = model.clusters().unwrap();
-
-    // Predict the classes and partition into
-    println!("Predicting the samples...");
-    let classes = model.predict(&flower_x_test).unwrap();
+    let predicted_clusters = flower_labels_clusters_gmm(classes.data());
+    println!("predicted clusters from gmm: {:?}", predicted_clusters);
+    println!("{:?}", flower_y_test_clus);
+    println!("jaccard index: {:?}", rand_index(&predicted_clusters, &flower_y_test_clus));
 
     output_separator();
 
-    println!("Dimensionality reduction using PCA");
-    let mut model = PCA::default();
-    println!("{:?}", model);
-    let mut model = PCA::new(2, true);
-    model.train(&flower_x_train)?;
+    // // DBscan slagorithm
+    // // eps = 0.3 and min_samples = 10
+    // let model_type = "DBScan";
+    // let mut model = DBSCAN::new(0.3, 10);
+    // // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
+    // model.set_predictive(true);
 
-    println!("{:?}", model.predict(&flower_x_test)?);
-    println!("{:?}", model.components());
+    // //Train the model
+    // println!("Training the {} model", model_type);
+    // model.train(&flower_x_train)?;
 
-    output_separator();
+    // // clusters
+    // let clustering = model.clusters().unwrap();
+    // println!("Clusters on DBSCAN: {:?}", clustering);
+
+    // // Predict the classes and partition into
+    // println!("Predicting the samples...");
+    // let classes = model.predict(&flower_x_test).unwrap();
+    // println!("Classes of x_test on DBSCAN: {:?}", classes);
+
+    // output_separator();
+
+    // println!("Dimensionality reduction using PCA");
+    // let mut model = PCA::default();
+    // println!("{:?}", model);
+    // let mut model = PCA::new(2, true);
+    // model.train(&flower_x_train)?;
+
+    // println!("{:?}", model.predict(&flower_x_test)?);
+    // println!("{:?}", model.components());
+
+    // output_separator();
 
     Ok(())
 }
