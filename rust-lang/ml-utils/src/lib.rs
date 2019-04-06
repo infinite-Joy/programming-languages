@@ -55,16 +55,16 @@ fn elements_in_vectr(vectr: &Vec<HashSet<u64>>) -> u64 {
 fn count_pairwise_cooccurence(clusters1: &Vec<HashSet<u64>>,
         clusters2: &Vec<HashSet<u64>>) -> (f64, f64, f64, f64) {
     let cont_tbl = contingency_table(&clusters1, &clusters2);
-    println!("{:?}", cont_tbl);
+    // println!("{:?}", cont_tbl);
 
     let square_matrix = cont_tbl.mapv(|a| a.pow(2));
-    println!("{:?}", square_matrix);
+    // println!("{:?}", square_matrix);
     let sum_of_squares1 = square_matrix.into_raw_vec();
     let sum_of_squares: u64 = sum_of_squares1.iter().sum();
-    println!("{:?}", sum_of_squares);
+    // println!("{:?}", sum_of_squares);
     let c1_sum_sq_sizes = cluster_size_sequence_sqsum(clusters1);
     let c2_sum_sq_sizes = cluster_size_sequence_sqsum(clusters2);
-    println!("{:?}", c1_sum_sq_sizes);
+    // println!("{:?}", c1_sum_sq_sizes);
 
     let c1_elements_count = elements_in_vectr(clusters1);
     let n11 = 0.5 * (sum_of_squares - c1_elements_count) as f64;
@@ -81,7 +81,7 @@ pub fn hashset(data: &[u64]) -> HashSet<u64> {
 
 pub fn jaccard_index(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>>) -> f64 {
     let (n11, n10, n01, n00) = count_pairwise_cooccurence(clusters1, clusters2);
-    println!("{:?}", (n11, n10, n01, n00));
+    // println!("{:?}", (n11, n10, n01, n00));
     let denominator = n11 + n10 + n01;
     if denominator > 0.0 {
         return n11 / denominator;

@@ -207,42 +207,43 @@ fn main() -> Result<(), Box<Error>> {
     let predicted_clusters = flower_labels_clusters_gmm(classes.data());
     println!("predicted clusters from gmm: {:?}", predicted_clusters);
     println!("{:?}", flower_y_test_clus);
-    println!("jaccard index: {:?}", rand_index(&predicted_clusters, &flower_y_test_clus));
+    println!("rand index: {:?}", rand_index(&predicted_clusters, &flower_y_test_clus));
+    println!("jaccard index: {:?}", jaccard_index(&predicted_clusters, &flower_y_test_clus));
 
     output_separator();
 
-    // // DBscan slagorithm
-    // // eps = 0.3 and min_samples = 10
-    // let model_type = "DBScan";
-    // let mut model = DBSCAN::new(0.3, 10);
-    // // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
-    // model.set_predictive(true);
+    // DBscan slagorithm
+    // eps = 0.3 and min_samples = 10
+    let model_type = "DBScan";
+    let mut model = DBSCAN::new(0.3, 10);
+    // let mut model = DBSCAN::default(); //the default is DBSCAN { eps: 0.5, min_points: 5, clusters: None, predictive: false, _visited: [], _cluster_data: None }
+    model.set_predictive(true);
 
-    // //Train the model
-    // println!("Training the {} model", model_type);
-    // model.train(&flower_x_train)?;
+    //Train the model
+    println!("Training the {} model", model_type);
+    model.train(&flower_x_train)?;
 
-    // // clusters
-    // let clustering = model.clusters().unwrap();
-    // println!("Clusters on DBSCAN: {:?}", clustering);
+    // clusters
+    let clustering = model.clusters().unwrap();
+    println!("Clusters on DBSCAN: {:?}", clustering);
 
-    // // Predict the classes and partition into
-    // println!("Predicting the samples...");
-    // let classes = model.predict(&flower_x_test).unwrap();
-    // println!("Classes of x_test on DBSCAN: {:?}", classes);
+    // Predict the classes and partition into
+    println!("Predicting the samples...");
+    let classes = model.predict(&flower_x_test).unwrap();
+    println!("Classes of x_test on DBSCAN: {:?}", classes);
 
-    // output_separator();
+    output_separator();
 
-    // println!("Dimensionality reduction using PCA");
-    // let mut model = PCA::default();
-    // println!("{:?}", model);
-    // let mut model = PCA::new(2, true);
-    // model.train(&flower_x_train)?;
+    println!("Dimensionality reduction using PCA");
+    let mut model = PCA::default();
+    println!("{:?}", model);
+    let mut model = PCA::new(2, true);
+    model.train(&flower_x_train)?;
 
-    // println!("{:?}", model.predict(&flower_x_test)?);
-    // println!("{:?}", model.components());
+    println!("{:?}", model.predict(&flower_x_test)?);
+    println!("{:?}", model.components());
 
-    // output_separator();
+    output_separator();
 
     Ok(())
 }
