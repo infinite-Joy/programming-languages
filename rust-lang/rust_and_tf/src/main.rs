@@ -1,3 +1,25 @@
+/// This package is about the different ways you can use tensorflow in rust.
+/// Current possible arguments.
+/// # Arguments
+/// * `` - WIll run the placeholders example.
+/// * `seq` - WIll run the sequence of nodes example
+/// * `cars` - Will run the example with graph variables
+///
+/// # Example
+/// ```
+/// $ cargo run seq
+/// ➜  rust_and_tf git:(master) ✗ cargo run seq
+///    Finished dev [unoptimized + debuginfo] target(s) in 0.15s
+///     Running `target/debug/rust_and_tf seq`
+/// 2019-04-07 12:55:41.781908: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX
+/// 2019-04-07 12:55:41.814069: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 1996260000 Hz
+/// 2019-04-07 12:55:41.814902: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x56514fdfded0 executing computations on platform Host. Devices:
+/// 2019-04-07 12:55:41.814966: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+/// constant evaluation: w = 3; x = w + 2; y = x + 5; z = x * 3
+/// y => 10.0
+/// z => 15.0
+/// ```
+
 use std::process::exit;
 use std::env::args;
 
