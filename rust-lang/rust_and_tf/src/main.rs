@@ -20,12 +20,18 @@
 /// z => 15.0
 /// ```
 
+extern crate serde;
+// This lets us write `#[derive(Deserialize)]`.
+#[macro_use]
+extern crate serde_derive;
+
 use std::process::exit;
 use std::env::args;
 
 mod graph_with_placeholder;
 mod seq_nodes;
 mod graph_variables;
+mod linear_regression;
 
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
@@ -43,6 +49,7 @@ fn main() {
         None => graph_with_placeholder::run(),
         Some("seq") => seq_nodes::run(),
         Some("vars") => graph_variables::run(),
+        Some("lr") => linear_regression::run(),
         Some(_) => graph_with_placeholder::run(),
     };
     // Putting the main code in another function serves two purposes:

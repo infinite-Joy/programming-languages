@@ -21,7 +21,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let y_expr = x_expr.clone() + 5.0f32;
         let z_expr = x_expr.clone() * 3.0f32;
 
-        // let x_node = compiler.compile(x_expr.clone())?;
         let y_node = compiler.compile(y_expr.clone())?;
         let z_node = compiler.compile(z_expr.clone())?;
         (y_node, z_node)
