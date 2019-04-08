@@ -11,6 +11,8 @@ use std::process::exit;
 use std::env::args;
 
 mod lin_reg;
+mod gaussian_process_reg;
+mod glms;
 
 fn main() {
     let args: Vec<String> = args().collect();
@@ -22,8 +24,8 @@ fn main() {
     let res = match model {
         None => {println!("nothing", ); Ok(())},
         Some("lr") => lin_reg::run(),
-        // Some("vars") => graph_variables::run(),
-        // Some("lr") => linear_regression::run(),
+        Some("gp") => gaussian_process_reg::run(),
+        Some("glms") => glms::run(),
         Some(_) => lin_reg::run(),
     };
     // Putting the main code in another function serves two purposes:

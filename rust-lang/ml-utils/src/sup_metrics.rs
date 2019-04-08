@@ -1,20 +1,4 @@
-use std::vec::Vec;
-use std::collections::HashSet;
-// use std::io::Error;
-use std::error::Error;
-use std::cmp::Ordering;
-use std::iter::FromIterator;
-
-use rand;
-use rand::distributions::{Bernoulli, Distribution};
-use itertools;
-use itertools::iproduct;
-use itertools::Itertools;
-use ndarray;
-use ndarray::{arr2, Array, ArrayBase, OwnedRepr, Dim, Axis};
-use ndarray::prelude::*;
-
-pub fn r_squared_score(y_test: &Vec<f64>, y_preds: &Vec<f64>) -> f64 {
+pub fn r_squared_score(y_test: &[f64], y_preds: &[f64]) -> f64 {
     let model_variance: f64 = y_test.iter().zip(y_preds.iter()).fold(
         0., |v, (y_i, y_i_hat)| {
             v + (y_i - y_i_hat).powi(2)
