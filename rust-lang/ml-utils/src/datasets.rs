@@ -6,8 +6,6 @@ use std::io::BufReader;
 use std::path::Path;
 use std::fs::File;
 use std::vec::Vec;
-use serde;
-use serde_derive;
 
 #[derive(Debug, Deserialize)]
 pub struct BostonHousing {

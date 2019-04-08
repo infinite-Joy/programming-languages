@@ -61,11 +61,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // let boston_y_test = Vector::new(boston_y_test);
     let boston_y_test = Matrix::new(test_size, 1, boston_y_test);
 
-    // Create a poisson generalised linear model
-    let mut poisson_glm_model = GenLinearModel::new(Normal);
-    poisson_glm_model.train(&boston_x_train, &boston_y_train)?;
+    // Create a normal generalised linear model
+    let mut normal_model = GenLinearModel::new(Normal);
+    normal_model.train(&boston_x_train, &boston_y_train)?;
 
-    let predictions = poisson_glm_model.predict(&boston_x_test).unwrap();
+    let predictions = normal_model.predict(&boston_x_test).unwrap();
     let predictions = Matrix::new(test_size, 1, predictions);
     let acc = neg_mean_squared_error(&predictions, &boston_y_test);
     println!("glm poisson accuracy: {:?}", acc);

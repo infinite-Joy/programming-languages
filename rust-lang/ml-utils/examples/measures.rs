@@ -2,7 +2,8 @@ use std::vec::Vec;
 use std::collections::HashSet;
 
 use ml_utils as ml;
-use ml::{jaccard_index, hashset, rand_index};
+use ml::unsup_metrics::{jaccard_index, hashset, rand_index};
+// use ml::{jaccard_index, hashset, rand_index};
 
 fn main() {
     let clusters1 = vec![vec![0u8,8,3, 7], vec![1u8,5], vec![2u8, 4, 6]];
