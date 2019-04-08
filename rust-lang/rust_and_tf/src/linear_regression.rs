@@ -9,6 +9,7 @@ use std::vec::Vec;
 use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use transpose;
 
 use tensorflow as tf;
 use tf::expr::{Compiler, Constant};
@@ -114,15 +115,25 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let boston_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
     let boston_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).collect();
 
-    println!("{:?}", boston_y_train.len());
+    // println!("{:?}", boston_y_train.len());
     println!("{:?}", boston_x_train.len());
 
 
     let mut g = Graph::new();
-     Compiler::new(&mut g);
-    let w = <Tensor<f64>>::new(&[405, 13]).with_values(&boston_x_train).unwrap();
-    println!("{:?}", w);
-    let w_expr = <Constant<f64>>::new_expr(w);
+    Compiler::new(&mut g);
+    let dim = (405, 13);
+    let x = <Tensor<f64>>::new(&[dim.0, dim.1]).with_values(&boston_x_train).unwrap();
+    let x_expr = <Constant<f64>>::new_expr(x.clone());
+
+    let mut x_transpose = vec![0.0f64; boston_x_train.len()];
+    // we dont have the functionality in rust tensorflow yet, hence we are using a different crate.
+    transpose::transpose(
+        &boston_x_train, &mut x_transpose, dim.1 as usize, dim.0 as usize);
+    let xt_tensor = <Tensor<f64>>::new(&[dim.1, dim.0]).with_values(&x_transpose).unwrap();
+    let xt_expr = <Constant<f64>>::new_expr(xt_tensor.clone());
+    println!("{:?}", xt_tensor.dims());
+    let theta = (xt_expr * x_expr) ;
+    println!("{:?}", theta);
 
 
     // let (y_node, z_node) = {

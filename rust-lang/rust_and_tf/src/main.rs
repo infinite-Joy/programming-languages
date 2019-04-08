@@ -20,6 +20,8 @@
 /// z => 15.0
 /// ```
 
+// reference: https://github.com/danieldk/dpar
+
 extern crate serde;
 // This lets us write `#[derive(Deserialize)]`.
 #[macro_use]
