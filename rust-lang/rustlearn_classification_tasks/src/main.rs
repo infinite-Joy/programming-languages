@@ -21,74 +21,15 @@ use rustlearn::linear_models::sgdclassifier::Hyperparameters as logistic_regress
 use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
 use rustlearn::metrics::{accuracy_score, roc_auc_score};
 
+use ml_utils;
+use ml_utils::sup_metrics::{accuracy, logloss_score};
+use ml_utils::datasets::Flower;
+
 fn main() {
     if let Err(err) = read_csv() {
         println!("{}", err);
         process::exit(1);
     }
-}
-
-#[derive(Debug, Deserialize)]
-struct Flower {
-    sepal_length: f32, // everything needs to be f32, other types wont do in rusty machine
-    sepal_width: f32,
-    petal_length: f32,
-    petal_width: f32,
-    species: String,
-}
-
-impl Flower {
-    fn into_feature_vector(&self) -> Vec<f32> {
-        vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
-    }
-
-    fn into_labels(&self) -> f32 {
-        match self.species.as_str() {
-            "setosa" => 0.,
-            "versicolor" => 1.,
-            "virginica" => 2.,
-            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
-        }
-    }
-}
-
-fn accuracy(y_test: &Vec<f32>, y_preds: &Vec<f32>) -> f32 {
-    let mut correct_hits = 0;
-    for (predicted, actual) in y_preds.iter().zip(y_test.iter()) {
-        if predicted == actual {
-            correct_hits += 1;
-        }
-    }
-    let acc: f32 = correct_hits as f32 / y_test.len() as f32;
-    acc
-}
-
-fn logloss_score(y_test: &Vec<f32>, y_preds: &Vec<f32>, eps: f32) -> f32 {
-    // complete this http://wiki.fast.ai/index.php/Log_Loss#Log_Loss_vs_Cross-Entropy
-    let y_preds = y_preds.iter().map(|&p| {
-        match p.partial_cmp(&(1.0 - eps)) {
-            Some(Ordering::Less) => p,
-            _ => 1.0 - eps, // if equal or greater.
-        }
-    });
-    let y_preds = y_preds.map(|p| {
-        match p.partial_cmp(&eps) {
-            Some(Ordering::Less) => eps,
-            _ => p,
-        }
-    });
-
-    // Now compute the logloss
-    let logloss_vals = y_preds.zip(y_test.iter()).map(|(predicted, &actual)| {
-        if actual as f32 == 1.0 {
-            (-1.0) * predicted.ln()
-        } else if actual as f32 == 0.0 {
-            (-1.0) * (1.0 - predicted).ln()
-        } else {
-            panic!("Invalid labels: target data is not either 0.0 or 1.0");
-        }
-    });
-    logloss_vals.sum()
 }
 
 fn read_csv() -> Result<(), Box<Error>> {
