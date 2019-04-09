@@ -14,12 +14,8 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 use tch;
-<<<<<<< HEAD
-use tch::{nn, kind, Kind, Tensor, no_grad, vision};
-=======
 use tch::{nn, kind, Kind, Tensor, no_grad, vision, Device};
 use tch::{nn::Module, nn::OptimizerConfig};
->>>>>>> 059aa65337bfa92b3625e0f655f3f312be4354e0
 
 static FEATURE_DIM: i64 = 4;
 static HIDDEN_NODES: i64 = 10;

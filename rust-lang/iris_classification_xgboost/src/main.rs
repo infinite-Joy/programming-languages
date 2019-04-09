@@ -16,34 +16,12 @@ use rand::seq::SliceRandom;
 use xgboost;
 use xgboost::{parameters, DMatrix, Booster};
 
+use ml_utils::datasets::Flower;
+
 fn main() {
     if let Err(err) = read_csv() {
         println!("{}", err);
         process::exit(1);
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct Flower {
-    sepal_length: f32, // everything needs to be f32, other types wont do in rusty machine
-    sepal_width: f32,
-    petal_length: f32,
-    petal_width: f32,
-    species: String,
-}
-
-impl Flower {
-    fn into_feature_vector(&self) -> Vec<f32> {
-        vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
-    }
-
-    fn into_labels(&self) -> f32 {
-        match self.species.as_str() {
-            "setosa" => 0.,
-            "versicolor" => 1.,
-            "virginica" => 2.,
-            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
-        }
     }
 }
 
