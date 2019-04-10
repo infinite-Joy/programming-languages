@@ -5,6 +5,7 @@ use std::env::args;
 mod trees;
 mod logistic_reg;
 mod svm;
+mod binary_class_scores;
 
 fn main() {
     let args: Vec<String> = args().collect();
@@ -17,6 +18,7 @@ fn main() {
         None => {println!("nothing", ); Ok(())},
         Some("lr") => logistic_reg::run(),
         Some("svm") => svm::run(),
+        Some("bs") => binary_class_scores::run(),
         Some(_) => trees::run(),
     };
     // Putting the main code in another function serves two purposes:
