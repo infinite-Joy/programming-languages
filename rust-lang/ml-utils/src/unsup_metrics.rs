@@ -19,7 +19,7 @@ fn matching_elems_count(s1: &HashSet<u64>, s2: &HashSet<u64>) -> u64 {
     common.len() as u64
 }
 
-fn contingency_table(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>>) -> ArrayBase<OwnedRepr<u64>, Dim<[usize; 2]>> {
+fn contingency_table(clusters1: &[HashSet<u64>], clusters2: &[HashSet<u64>]) -> ArrayBase<OwnedRepr<u64>, Dim<[usize; 2]>> {
     let length = clusters1.len();
     assert!(length == clusters2.len());
     let product = iproduct!(clusters1, clusters2);
@@ -33,7 +33,7 @@ fn contingency_table(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>
     // v_chunked
 }
 
-fn cluster_size_sequence_sqsum(clusters: &Vec<HashSet<u64>>) -> u64 {
+fn cluster_size_sequence_sqsum(clusters: &[HashSet<u64>]) -> u64 {
     let cluster1_size_seq: Vec<u64> = clusters.iter().map(
         |v| v.len() as u64).collect();
     let squares = cluster1_size_seq.iter().map(
@@ -42,7 +42,7 @@ fn cluster_size_sequence_sqsum(clusters: &Vec<HashSet<u64>>) -> u64 {
     squares.sum()
 }
 
-fn elements_in_vectr(vectr: &Vec<HashSet<u64>>) -> u64 {
+fn elements_in_vectr(vectr: &[HashSet<u64>]) -> u64 {
     let flatten_array: Vec<u64> = vectr
         .iter()
         .flat_map(|array| array.iter())
@@ -52,8 +52,7 @@ fn elements_in_vectr(vectr: &Vec<HashSet<u64>>) -> u64 {
 
 }
 
-fn count_pairwise_cooccurence(clusters1: &Vec<HashSet<u64>>,
-        clusters2: &Vec<HashSet<u64>>) -> (f64, f64, f64, f64) {
+fn count_pairwise_cooccurence(clusters1: &[HashSet<u64>], clusters2: &[HashSet<u64>]) -> (f64, f64, f64, f64) {
     let cont_tbl = contingency_table(&clusters1, &clusters2);
     // println!("{:?}", cont_tbl);
 
@@ -79,7 +78,7 @@ pub fn hashset(data: &[u64]) -> HashSet<u64> {
     HashSet::from_iter(data.iter().cloned())
 }
 
-pub fn jaccard_index(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>>) -> f64 {
+pub fn jaccard_index(clusters1: &[HashSet<u64>], clusters2: &[HashSet<u64>]) -> f64 {
     let (n11, n10, n01, n00) = count_pairwise_cooccurence(clusters1, clusters2);
     // println!("{:?}", (n11, n10, n01, n00));
     let denominator = n11 + n10 + n01;
@@ -90,7 +89,7 @@ pub fn jaccard_index(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>
     }
 }
 
-pub fn rand_index(clusters1: &Vec<HashSet<u64>>, clusters2: &Vec<HashSet<u64>>) -> f64 {
+pub fn rand_index(clusters1: &[HashSet<u64>], clusters2: &[HashSet<u64>]) -> f64 {
     let (n11, n10, n01, n00) = count_pairwise_cooccurence(clusters1, clusters2);
     (n11 + n00) / (n11 + n10 + n01 + n00)
 }

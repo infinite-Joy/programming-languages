@@ -23,7 +23,7 @@ use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use ml_utils;
-use ml_utils::{jaccard_index, rand_index};
+use ml_utils::unsup_metrics::{jaccard_index, rand_index};
 
 #[derive(Debug, Deserialize)]
 struct Flower {
