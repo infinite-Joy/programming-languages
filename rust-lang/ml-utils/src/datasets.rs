@@ -83,3 +83,21 @@ impl Flower {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // #[test]
+    // fn test_contingency_table() {
+    //     let (clusters1, clusters2) = generate_data();
+    //     let table = contingency_table(&clusters1, &clusters2);
+    //     println!("{:?}", table);
+    //     let table2: Vec<u8> = [2, 1, 1, 0, 1, 1, 1, 2, 0].to_vec();
+    //     let table3 = Array::from_shape_vec((3,3), table2).unwrap();
+    //     assert_eq!(table, table3);
+    // }
+
+    //     assert_eq!(res, 0.5555555555555556);
+    // }
+}
