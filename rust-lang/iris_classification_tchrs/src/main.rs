@@ -124,53 +124,54 @@ fn read_csv() -> Result<(), Box<Error>> {
     let flower_y_test = flower_y_test.view(&[test_size]);
 
     // working on a linear neural network with SGD
-let vs = nn::VarStore::new(Device::Cpu);
-let net = Net::new(&vs.root());
-let opt = nn::Adam::default().build(&vs, 1e-3)?;
-for epoch in 1..200 {
-        let loss = net
-            .forward(&flower_x_train)
-            .cross_entropy_for_logits(&flower_y_train);
-        opt.backward_step(&loss);
-        let test_accuracy = net
-            .forward(&flower_x_test)
-            .accuracy_for_logits(&flower_y_test);
+    let vs = nn::VarStore::new(Device::Cpu);
+    let net = Net::new(&vs.root());
+    let opt = nn::Adam::default().build(&vs, 1e-3)?;
+    for epoch in 1..200 {
+            let loss = net
+                .forward(&flower_x_train)
+                .cross_entropy_for_logits(&flower_y_train);
+            opt.backward_step(&loss);
+            let test_accuracy = net
+                .forward(&flower_x_test)
+                .accuracy_for_logits(&flower_y_test);
+            println!(
+                "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
+                epoch,
+                f64::from(&loss),
+                100. * f64::from(&test_accuracy),
+            );
+    };
+
+
+    let mut ws = Tensor::ones(&[FEATURE_DIM, 1], kind::FLOAT_CPU).set_requires_grad(true);
+    let mut bs = Tensor::ones(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
+
+
+    for epoch in 1..200 {
+        let logits = flower_x_train.mm(&ws) + &bs;
+        let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
+        ws.zero_grad();
+        bs.zero_grad();
+        loss.backward();
+        no_grad(|| {
+            ws += ws.grad() * (-1);
+            bs += bs.grad() * (-1);
+        });
+        let test_logits = flower_x_test.mm(&ws) + &bs;
+        let test_accuracy = test_logits
+            .argmax1(-1, false)
+            .eq1(&flower_y_test)
+            .to_kind(Kind::Float)
+            .mean()
+            .double_value(&[]);
         println!(
             "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
             epoch,
-            f64::from(&loss),
-            100. * f64::from(&test_accuracy),
+            loss.double_value(&[]),
+            100. * test_accuracy
         );
-}
-
-    // let mut ws = Tensor::ones(&[feature_length, 1], kind::FLOAT_CPU).set_requires_grad(true);
-    // let mut bs = Tensor::ones(&[train_size], kind::FLOAT_CPU).set_requires_grad(true);
-
-
-    // for epoch in 1..200 {
-    //     let logits = flower_x_train.mm(&ws) + &bs;
-    //     let loss = logits.squeeze().cross_entropy_for_logits(&flower_y_train); // since working on label encoded vectors.
-    //     ws.zero_grad();
-    //     bs.zero_grad();
-    //     loss.backward();
-    //     no_grad(|| {
-    //         ws += ws.grad() * (-1);
-    //         bs += bs.grad() * (-1);
-    //     });
-    //     let test_logits = flower_x_test.mm(&ws) + &bs;
-    //     let test_accuracy = test_logits
-    //         .argmax1(-1, false)
-    //         .eq1(&flower_y_test)
-    //         .to_kind(Kind::Float)
-    //         .mean()
-    //         .double_value(&[]);
-    //     println!(
-    //         "epoch: {:4} train loss: {:8.5} test acc: {:5.2}%",
-    //         epoch,
-    //         loss.double_value(&[]),
-    //         100. * test_accuracy
-    //     );
-    // }
+    }
 
     Ok(())
 }
