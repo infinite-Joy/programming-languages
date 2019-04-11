@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::error::Error;
 use std::result::Result;
 use std::io::prelude::*;
@@ -13,7 +15,7 @@ use transpose;
 
 use tensorflow as tf;
 use tf::expr::{Compiler, Constant};
-use tf::{Graph, Tensor};
+use tf::{Graph, Tensor, DataType};
 use tf::{Session, SessionOptions, SessionRunArgs};
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
@@ -119,52 +121,53 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     println!("{:?}", boston_x_train.len());
 
 
-    let mut g = Graph::new();
-    Compiler::new(&mut g);
+    // Define graph.
+    let mut graph = Graph::new();
     let dim = (405, 13);
-    let x = <Tensor<f64>>::new(&[dim.0, dim.1]).with_values(&boston_x_train).unwrap();
-    let x_expr = <Constant<f64>>::new_expr(x.clone());
-
-    let mut x_transpose = vec![0.0f64; boston_x_train.len()];
-    // we dont have the functionality in rust tensorflow yet, hence we are using a different crate.
-    transpose::transpose(
-        &boston_x_train, &mut x_transpose, dim.1 as usize, dim.0 as usize);
-    let xt_tensor = <Tensor<f64>>::new(&[dim.1, dim.0]).with_values(&x_transpose).unwrap();
-    let xt_expr = <Constant<f64>>::new_expr(xt_tensor.clone());
-    println!("{:?}", xt_tensor.dims());
-    let theta = (xt_expr * x_expr) ;
-    println!("{:?}", theta);
-
-
-    // let (y_node, z_node) = {
-    //     let mut compiler = Compiler::new(&mut g);
-    //     let w = <Tensor<f32>>::new(&[1]).with_values(&[3.0_f32]).unwrap();
-    //     let w_expr = <Constant<f32>>::new_expr(w);
-    //     let x_expr = w_expr.clone() + 2.0f32;
-    //     let y_expr = x_expr.clone() + 5.0f32;
-    //     let z_expr = x_expr.clone() * 3.0f32;
-
-    //     let y_node = compiler.compile(y_expr.clone())?;
-    //     let z_node = compiler.compile(z_expr.clone())?;
-    //     (y_node, z_node)
+    // let X = <Tensor<f64>>::new(&[dim.0, dim.1]).with_values(&boston_x_train)?;
+    // let y = <Tensor<f64>>::new(&[dim.0, 1]).with_values(&boston_y_train)?;
+    let X = <Tensor<f64>>::new(&[2, 2]).with_values(&[1.0, 2.0, 3.0, 4.0])?;
+    let y = <Tensor<f64>>::new(&[2, 1]).with_values(&[2.0, 4.0])?;
+    
+    let X_const = {
+        let mut c = graph.new_operation("Const", "X")?;
+        c.set_attr_tensor("value", X)?;
+        c.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
+        c.finish()?
+    };
+    let y_const = {
+        let mut c = graph.new_operation("Const", "y")?;
+        c.set_attr_tensor("value", y)?;
+        c.set_attr_type("dtype", DataType::Double)?;
+        c.finish()?
+    };
+    let XT = {
+        let mut op = graph.new_operation("Transpose", "x_t")?;
+        op.add_input(X_const);
+        op.add_input(2);
+        op.finish()?
+    };
+    // let XT = {
+    //     let mut op = graph.new_operation("MatMul", "mul")?;
+    //     op.add_input(X_const);
+    //     op.add_input(y_const);
+    //     op.finish()?
+    // };
+    // let inverse = {
+    //     let mut op = graph.new_operation("MatrixInverse", "x_inv")?;
+    //     op.add_input(XT);
+    //     op.finish()?
     // };
 
-    // let options = SessionOptions::new();
-    // let mut session = Session::new(&options, &g)?;
-
-    // // Evaluate the graph.
-    // let mut step = SessionRunArgs::new();
-    // let output_token_y = step.request_fetch(&y_node, 0);
-    // let output_token_z = step.request_fetch(&z_node, 0);
-    // session.run(&mut step).unwrap();
-
-    // // Check our results.
-    // let output_tensor_y = step.fetch::<f32>(output_token_y)?;
-    // let output_tensor_z = step.fetch::<f32>(output_token_z)?;
-    // println!("constant evaluation: w = 3; x = w + 2; y = x + 5; z = x * 3");
-    // println!("y => {:?}", output_tensor_y[0]);
-    // println!("z => {:?}", output_tensor_z[0]);
-    // session.close()?;
+    // Run graph.
+    let session = Session::new(&SessionOptions::new(), &graph)?;
+    let mut args = SessionRunArgs::new();
+    // let inverse_token = args.request_fetch(&inverse, 0);
+    let inverse_token = args.request_fetch(&XT, 0);
+    session.run(&mut args)?;
+    let inverse_token_res: Tensor<f64> = args.fetch::<f64>(inverse_token)?;
+    println!("Now the inverse", );
+    println!("{:?}", &inverse_token_res[..]);
 
     Ok(())
 }
