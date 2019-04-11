@@ -124,10 +124,25 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Define graph.
     let mut graph = Graph::new();
     let dim = (405, 13);
-    // let X = <Tensor<f64>>::new(&[dim.0, dim.1]).with_values(&boston_x_train)?;
-    // let y = <Tensor<f64>>::new(&[dim.0, 1]).with_values(&boston_y_train)?;
-    let X = <Tensor<f64>>::new(&[2, 2]).with_values(&[1.0, 2.0, 3.0, 4.0])?;
-    let y = <Tensor<f64>>::new(&[2, 1]).with_values(&[2.0, 4.0])?;
+    let X = <Tensor<f64>>::new(&[dim.0, dim.1]).with_values(&boston_x_train)?;
+    let y = <Tensor<f64>>::new(&[dim.0, 1]).with_values(&boston_y_train)?;
+    // let X = <Tensor<f64>>::new(&[2, 2]).with_values(&[1.0, 2.0, 3.0, 4.0])?;
+    // let y = <Tensor<f64>>::new(&[2, 1]).with_values(&[2.0, 4.0])?;
+
+    // let input_array = vec![ 1.0, 2.0,
+    //                         3.0, 4.0 ];
+    // let mut output_array = vec![0.0; dim.0];
+    // transpose::transpose(&input_array, &mut output_array, 2, 2);
+    let mut output_array = vec![0.0; (dim.0 * dim.1) as usize];
+    transpose::transpose(&boston_x_train, &mut output_array, dim.1 as usize, dim.0 as usize);
+    // let XT =  <Tensor<f64>>::new(&[2, 2]).with_values(&output_array[..])?;
+    let XT =  <Tensor<f64>>::new(&[dim.1, dim.0]).with_values(&output_array[..])?;
+    let XT_const = {
+        let mut c = graph.new_operation("Const", "XT")?;
+        c.set_attr_tensor("value", XT)?;
+        c.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
+        c.finish()?
+    };
     
     let X_const = {
         let mut c = graph.new_operation("Const", "X")?;
@@ -135,39 +150,51 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         c.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
         c.finish()?
     };
+    // operation types https://github.com/malmaud/TensorFlow.jl/blob/063511525902bdf84a461035758ef9a73ba4a635/src/ops/op_names.txt
     let y_const = {
         let mut c = graph.new_operation("Const", "y")?;
         c.set_attr_tensor("value", y)?;
         c.set_attr_type("dtype", DataType::Double)?;
         c.finish()?
     };
-    let XT = {
-        let mut op = graph.new_operation("Transpose", "x_t")?;
+    // let XT = {
+    //     let mut op = graph.new_operation("Transpose", "x_t")?;
+    //     op.add_input(X_const);
+    //     op.add_input(2);
+    //     op.finish()?
+    // };
+    let mul = {
+        let mut op = graph.new_operation("MatMul", "mul")?;
+        op.add_input(XT_const.clone());
         op.add_input(X_const);
-        op.add_input(2);
         op.finish()?
     };
-    // let XT = {
-    //     let mut op = graph.new_operation("MatMul", "mul")?;
-    //     op.add_input(X_const);
-    //     op.add_input(y_const);
-    //     op.finish()?
-    // };
-    // let inverse = {
-    //     let mut op = graph.new_operation("MatrixInverse", "x_inv")?;
-    //     op.add_input(XT);
-    //     op.finish()?
-    // };
+    let inverse = {
+        let mut op = graph.new_operation("MatrixInverse", "mul_inv")?;
+        op.add_input(mul);
+        op.finish()?
+    };
+    let mul2 = {
+        let mut op = graph.new_operation("MatMul", "mul2")?;
+        op.add_input(inverse);
+        op.add_input(XT_const.clone());
+        op.finish()?
+    };
+    let theta = {
+        let mut op = graph.new_operation("MatMul", "theta")?;
+        op.add_input(mul2);
+        op.add_input(y_const);
+        op.finish()?
+    };
 
     // Run graph.
     let session = Session::new(&SessionOptions::new(), &graph)?;
     let mut args = SessionRunArgs::new();
-    // let inverse_token = args.request_fetch(&inverse, 0);
-    let inverse_token = args.request_fetch(&XT, 0);
+    let theta_token = args.request_fetch(&theta, 0);
     session.run(&mut args)?;
-    let inverse_token_res: Tensor<f64> = args.fetch::<f64>(inverse_token)?;
-    println!("Now the inverse", );
-    println!("{:?}", &inverse_token_res[..]);
+    let theta_token_res: Tensor<f64> = args.fetch::<f64>(theta_token)?;
+    println!("Now the theta", );
+    println!("{:?}", &theta_token_res[..]);
 
     Ok(())
 }
