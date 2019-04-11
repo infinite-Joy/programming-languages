@@ -34,6 +34,7 @@ mod graph_with_placeholder;
 mod seq_nodes;
 mod graph_variables;
 mod linear_regression;
+mod conv_nets;
 
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
@@ -52,6 +53,7 @@ fn main() {
         Some("seq") => seq_nodes::run(),
         Some("vars") => graph_variables::run(),
         Some("lr") => linear_regression::run(),
+        Some("conv") => conv_nets::run(),
         Some(_) => graph_with_placeholder::run(),
     };
     // Putting the main code in another function serves two purposes:
