@@ -21,6 +21,7 @@
 /// ```
 
 // reference: https://github.com/danieldk/dpar
+// https://www.tensorflow.org/tutorials/estimators/cnn
 
 extern crate serde;
 // This lets us write `#[derive(Deserialize)]`.
@@ -35,6 +36,7 @@ mod seq_nodes;
 mod graph_variables;
 mod linear_regression;
 mod conv_nets;
+mod conv_nets_maxpooling;
 
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
@@ -54,6 +56,7 @@ fn main() {
         Some("vars") => graph_variables::run(),
         Some("lr") => linear_regression::run(),
         Some("conv") => conv_nets::run(),
+        Some("conv_mp") => conv_nets_maxpooling::run(),
         Some(_) => graph_with_placeholder::run(),
     };
     // Putting the main code in another function serves two purposes:
