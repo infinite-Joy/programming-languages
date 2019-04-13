@@ -57,6 +57,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         c.set_attr_shape("shape", &Shape::from(Some(vec![Some(10_000),Some(28),Some(28),Some(1)])))?;
         c.finish()?
     };
+    let y_const = {
+        let mut c = graph.new_operation("Placeholder", "X")?;
+        c.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
+        // c.set_attr_shape("shape", &Shape::from(Some(vec![Some(28),Some(28),Some(1),Some(32)])))?;
+        c.set_attr_shape("shape", &Shape::from(Some(vec![Some(10_000)])))?;
+        c.finish()?
+    };
     // operation types https://github.com/malmaud/TensorFlow.jl/blob/063511525902bdf84a461035758ef9a73ba4a635/src/ops/op_names.txt
     let filter = {
         let mut c = graph.new_operation("Const", "filter")?;
@@ -73,6 +80,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         op.set_attr_int_list("strides", &[1,2,2,1])?;
         op.finish()?
     };
+
+    let stopped_gradient = {
+        let mut nd = g.new_operation("StopGradient", "stopped").unwrap();
+        nd.add_input(y_const.clone());
+        nd.finish().unwrap()
+    };
+    let y_outs = vec![stopped_gradient.into()];
+    let x_outs = vec![X_const.into()];
 
 
 
