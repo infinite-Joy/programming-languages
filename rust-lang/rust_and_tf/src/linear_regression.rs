@@ -65,7 +65,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         op.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
         op.finish()?
     };
-
     let X_const = {
         let mut op = graph.new_operation("Const", "X_train")?;
         op.set_attr_tensor("value", X_train)?;
@@ -79,16 +78,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         op.set_attr_type("dtype", DataType::Double)?;
         op.finish()?
     };
-    // let XT = {
-    //     let mut op = graph.new_operation("Transpose", "x_t")?;
-    //     op.add_input(X_const);
-    //     op.add_input(2);
-    //     op.finish()?
-    // };
     let mul = {
         let mut op = graph.new_operation("MatMul", "mul")?;
         op.add_input(XT_const.clone());
-        op.add_input(X_const);
+        op.add_input(X_const.clone());
         op.finish()?
     };
     let inverse = {
@@ -114,7 +107,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let X_test_const = {
         let mut op = graph.new_operation("Const", "X_test")?;
         op.set_attr_tensor("value", X_test)?;
-        op.set_attr_type("dtype", DataType::Double)?; // check the enums https://github.com/tensorflow/rust/blob/ddff61850be1c8044ac86350caeed5a55824ebe4/src/lib.rs#L297
+        op.set_attr_type("dtype", DataType::Double)?;
         op.finish()?
     };
     let predictions = {
