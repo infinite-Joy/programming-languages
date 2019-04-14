@@ -74,11 +74,20 @@ impl Flower {
         vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
     }
 
-    pub fn into_targets(&self) -> f32 {
+    pub fn into_labels(&self) -> f32 {
         match self.species.as_str() {
             "setosa" => 0.,
             "versicolor" => 1.,
             "virginica" => 2.,
+            l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
+        }
+    }
+
+    pub fn into_int_labels(&self) -> u64 {
+        match self.species.as_str() {
+            "setosa" => 0,
+            "versicolor" => 1,
+            "virginica" => 2,
             l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
         }
     }
@@ -126,13 +135,13 @@ mod tests {
             let r: Flower = result.unwrap();
             data.push(r); // data contains all the records
         }
-        
+
         let flower_x_train: Vec<f32> = data.iter().flat_map(|r| r.into_feature_vector()).collect();
         assert_eq!(flower_x_train, [5.1, 3.5, 5.1, 0.2]);
     }
 
     #[test]
-    fn test_into_targets() {
+    fn test_into_labels() {
         let data = "sepal_length,sepal_width,petal_length,petal_width,species\n5.1,3.5,1.4,0.2,setosa\n";
         let mut rdr = csv::Reader::from_reader(data.as_bytes());
         let mut data = Vec::new();
@@ -140,8 +149,8 @@ mod tests {
             let r: Flower = result.unwrap();
             data.push(r); // data contains all the records
         }
-        
-        let flower_x_train: Vec<f32> = data.iter().map(|r| r.into_targets()).collect();
+
+        let flower_x_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
         assert_eq!(flower_x_train, [0.0]);
     }
 }

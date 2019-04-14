@@ -21,7 +21,7 @@ pub fn r_squared_score(y_test: &[f64], y_preds: &[f64]) -> f64 {
 }
 
 // for classification
-pub fn accuracy(y_test: &[f32], y_preds: &[f32]) -> f32 {
+pub fn accuracy(y_test: &[u32], y_preds: &[u32]) -> f32 {
     let mut correct_hits = 0;
     for (predicted, actual) in y_preds.iter().zip(y_test.iter()) {
         if predicted == actual {
