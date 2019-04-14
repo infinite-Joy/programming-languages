@@ -6,7 +6,7 @@ use rusty_machine as rm;
 use rm::linalg::Matrix;
 use rm::linalg::Vector;
 use rm::learning::knn::KNNClassifier;
-use rusty_machine::learning::knn::{KDTree, BallTree};
+use rusty_machine::learning::knn::{KDTree, BallTree, BruteForce};
 use rm::learning::SupModel;
 use csv;
 use rand;
@@ -43,7 +43,8 @@ fn main() -> Result<(), Box<Error>> {
         let features: Vec<f64> = features.iter().map(|&x| x as f64).collect();
         features
     }).collect();
-    let flower_y_train: Vec<usize> = train_data.iter().map(|r| r.into_int_labels() as usize).collect();
+    let flower_y_train: Vec<usize> = train_data.iter().map(
+        |r| r.into_int_labels() as usize).collect();
 
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| {
         let features = r.into_feature_vector();
@@ -56,19 +57,67 @@ fn main() -> Result<(), Box<Error>> {
     let flower_x_train = Matrix::new(train_size, 4, flower_x_train);
     let flower_y_train = Vector::new(flower_y_train);
     let flower_x_test = Matrix::new(test_size, 4, flower_x_test);
-    // let flower_y_test = Matrix::new(test_size, 3, flower_y_test);
-    // let flower_y_test = flower_y_test.chunks(3).collect();
 
-    // train the classifier to search 2 nearest
+    // train the classifier to search 2 nearest. this is the same as kdtree
     let mut knn = KNNClassifier::new(2);
-    knn.train(&flower_x_train, &flower_y_train).unwrap();
+    println!("{:?}", knn);
 
-    // println!("{:?}", knn);
+    // train the classifier
+    knn.train(&flower_x_train, &flower_y_train).unwrap();
 
     // predict new points
     let preds = knn.predict(&flower_x_test).unwrap();
     let preds: Vec<u32> = preds.data().iter().map(|&x| x as u32).collect();
+    println!("default is binary tree");
     println!("accuracy {:?}", accuracy(preds.as_slice(), &flower_y_test));
+
+    // Ball tree is good when the number of dimensions are huge.
+    let mut knn = KNNClassifier::new_specified(2, BallTree::new(30));
+    println!("{:?}", knn);
+
+    // train the classifier
+    knn.train(&flower_x_train, &flower_y_train).unwrap();
+
+    // predict new points
+    let preds = knn.predict(&flower_x_test).unwrap();
+    let preds: Vec<u32> = preds.data().iter().map(|&x| x as u32).collect();
+    println!("accuracy for ball tree {:?}", accuracy(preds.as_slice(), &flower_y_test));
+
+    // The k-d tree is a binary tree in which every leaf node is a k-dimensional point
+    let mut knn = KNNClassifier::new_specified(2, KDTree::default());
+    println!("{:?}", knn);
+
+    // train the classifier
+    knn.train(&flower_x_train, &flower_y_train).unwrap();
+
+    // predict new points
+    let preds = knn.predict(&flower_x_test).unwrap();
+    let preds: Vec<u32> = preds.data().iter().map(|&x| x as u32).collect();
+    println!("accuracy for kdtree tree {:?}", accuracy(preds.as_slice(), &flower_y_test));
+
+    // The k-d tree is a binary tree in which every leaf node is a k-dimensional point
+    let mut knn = KNNClassifier::new_specified(2, KDTree::default());
+    println!("{:?}", knn);
+
+    // train the classifier
+    knn.train(&flower_x_train, &flower_y_train).unwrap();
+
+    // predict new points
+    let preds = knn.predict(&flower_x_test).unwrap();
+    let preds: Vec<u32> = preds.data().iter().map(|&x| x as u32).collect();
+    println!("accuracy for ball tree {:?}", accuracy(preds.as_slice(), &flower_y_test));
+
+    // Brute force means all the nearest neighbors are looked into
+    let mut knn = KNNClassifier::new_specified(2, BruteForce::default());
+    println!("{:?}", knn);
+
+    // train the classifier
+    knn.train(&flower_x_train, &flower_y_train).unwrap();
+
+    // predict new points
+    let preds = knn.predict(&flower_x_test).unwrap();
+    let preds: Vec<u32> = preds.data().iter().map(|&x| x as u32).collect();
+    println!("accuracy for brute force {:?}", accuracy(preds.as_slice(), &flower_y_test));
 
 
     Ok(())
