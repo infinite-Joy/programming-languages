@@ -55,7 +55,7 @@ impl BostonHousing {
              self.tax, self.ptratio, self.black, self.lstat]
     }
 
-    fn into_labels(&self) -> f64 {
+    fn into_targets(&self) -> f64 {
         self.medv
     }
 }
@@ -110,12 +110,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let train_size = train_data.len();
     let test_size = test_data.len();
 
-    // differentiate the features and the labels.
+    // differentiate the features and the targets.
     let boston_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let boston_y_train: Vec<f64> = train_data.iter().map(|r| r.into_labels()).collect();
+    let boston_y_train: Vec<f64> = train_data.iter().map(|r| r.into_targets()).collect();
 
     let boston_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).collect();
-    let boston_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).collect();
+    let boston_y_test: Vec<f64> = test_data.iter().map(|r| r.into_targets()).collect();
 
     // println!("{:?}", boston_y_train.len());
     println!("{:?}", boston_x_train.len());

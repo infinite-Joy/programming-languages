@@ -40,7 +40,7 @@ impl BostonHousing {
              self.tax, self.ptratio, self.black, self.lstat]
     }
 
-    pub fn into_labels(&self) -> f64 {
+    pub fn into_targets(&self) -> f64 {
         self.medv
     }
 }
@@ -74,12 +74,12 @@ impl Flower {
         vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
     }
 
-    pub fn into_labels(&self) -> f32 {
+    pub fn into_targets(&self) -> f32 {
         match self.species.as_str() {
             "setosa" => 0.,
             "versicolor" => 1.,
             "virginica" => 2.,
-            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
+            l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
         }
     }
 }
@@ -132,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn test_into_labels() {
+    fn test_into_targets() {
         let data = "sepal_length,sepal_width,petal_length,petal_width,species\n5.1,3.5,1.4,0.2,setosa\n";
         let mut rdr = csv::Reader::from_reader(data.as_bytes());
         let mut data = Vec::new();
@@ -141,7 +141,7 @@ mod tests {
             data.push(r); // data contains all the records
         }
         
-        let flower_x_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
+        let flower_x_train: Vec<f32> = data.iter().map(|r| r.into_targets()).collect();
         assert_eq!(flower_x_train, [0.0]);
     }
 }
