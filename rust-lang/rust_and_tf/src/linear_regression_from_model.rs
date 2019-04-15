@@ -66,7 +66,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let export_dir = "boston_regression/"; // y = w * x + b
     if !Path::new(export_dir).exists() {
         return Err(Box::new(Status::new_set(Code::NotFound,
-                                            &format!("Run 'python regression_savedmodel.py' to generate \
+                                            &format!("Run the code in the tensorflow notebook in \
                                                       {} and try again.",
                                                      export_dir))
             .unwrap()));
@@ -92,7 +92,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     args.add_feed(&op_y, 0, &y_train);
     args.add_target(&op_train);
     let preds_token = args.request_fetch(&op_y_preds, 0);
-    for _ in 0..5 {
+    for _ in 0..10 {
         session.run(&mut args)?;
     };
     let preds_token_res: Tensor<f64> = args.fetch::<f64>(preds_token)?;
