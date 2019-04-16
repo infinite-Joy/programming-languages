@@ -1,13 +1,16 @@
 #[macro_use]
 extern crate serde_derive;
+
 extern crate serde;
 extern crate serde_json;
+extern crate serde_xml_rs;
 
 use std::vec::Vec;
 use std::process::exit;
 use std::env::args;
 
 mod jsonreading;
+mod xmlreading;
 
 fn main() {
     let args: Vec<String> = args().collect();
@@ -19,6 +22,7 @@ fn main() {
     let res = match model {
         None => {println!("nothing", ); Ok(())},
         Some("json") => jsonreading::run(),
+        Some("xml") => xmlreading::run(),
         Some(_) => jsonreading::run(),
     };
     // Putting the main code in another function serves two purposes:

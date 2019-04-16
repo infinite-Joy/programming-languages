@@ -6,7 +6,6 @@ use std::error::Error;
 use std::fs::File;
 
 #[derive(Debug, Serialize, Deserialize)]
-// #[serde(rename_all = "PascalCase")]
 struct Prizes {
     prizes: Vec<Prize>,
 }
@@ -23,7 +22,6 @@ struct Prize {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-// #[serde(rename_all = "PascalCase")]
 struct NobelLaureates {
     share: String,
     #[serde(default)]
