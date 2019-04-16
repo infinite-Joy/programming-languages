@@ -10,12 +10,34 @@ use serde_xml_rs::Deserializer;
 #[derive(Deserialize, Debug)]
 struct Project {
     name: String,
-    libraries: Vec<Libraries>
+    libraries: Vec<Libraries>,
+    module: Vec<Module>,
+}
+
+#[derive(Deserialize, Debug)]
+struct Module {
+    files: Vec<Files>,
+    #[serde(default)]
+    libraries: Vec<Libraries>,
+}
+
+#[derive(Deserialize, Debug)]
+struct Files {
+    file: Vec<FileName>,
+}
+
+#[derive(Deserialize, Debug)]
+struct FileName {
+    name: String,
+    #[serde(rename = "type")]
+    lang: String,
+    #[serde(rename = "$value")]
+    body: String,
 }
 
 #[derive(Deserialize, Debug)]
 struct Libraries {
-    libraries: Vec<Library>,
+    library: Vec<Library>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -30,6 +52,7 @@ struct Library {
 pub fn run() -> Result<(), Box<Error>> {
     let file = File::open("data/sample_1.xml").unwrap();
     let project: Project = from_reader(file).unwrap();
+    // println!("{:#?}", project.libraries[0].library[0]);
     println!("{:#?}", project);
     Ok(())
 }
