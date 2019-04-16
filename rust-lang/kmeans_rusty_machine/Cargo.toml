@@ -5,4 +5,6 @@ authors = ["joydeep bhattacharjee <joydeepubuntu@gmail.com>"]
 
 [dependencies]
 rusty-machine="0.5.4"
-rand = "0.4.1"
+rand = "0.6.5"
+ml-utils = { path = "../ml-utils" }
+csv = "1.0.7"

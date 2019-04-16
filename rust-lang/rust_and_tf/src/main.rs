@@ -36,7 +36,7 @@ mod seq_nodes;
 mod graph_variables;
 mod linear_regression;
 mod conv_nets;
-mod conv_nets_maxpooling;
+mod linear_regression_from_model;
 
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
@@ -55,6 +55,7 @@ fn main() {
         Some("seq") => seq_nodes::run(),
         Some("vars") => graph_variables::run(),
         Some("lr") => linear_regression::run(),
+        Some("lr_py") => linear_regression_from_model::run(),
         Some("conv") => conv_nets::run(),
         Some("conv_mp") => conv_nets_maxpooling::run(),
         Some(_) => graph_with_placeholder::run(),

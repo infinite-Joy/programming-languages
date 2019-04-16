@@ -40,7 +40,7 @@ impl BostonHousing {
              self.tax, self.ptratio, self.black, self.lstat]
     }
 
-    pub fn into_labels(&self) -> f64 {
+    pub fn into_targets(&self) -> f64 {
         self.medv
     }
 }
@@ -79,7 +79,16 @@ impl Flower {
             "setosa" => 0.,
             "versicolor" => 1.,
             "virginica" => 2.,
-            l => panic!("Not able to parse the label. Some other label got passed. {:?}", l),
+            l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
+        }
+    }
+
+    pub fn into_int_labels(&self) -> u64 {
+        match self.species.as_str() {
+            "setosa" => 0,
+            "versicolor" => 1,
+            "virginica" => 2,
+            l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
         }
     }
 }
@@ -126,7 +135,7 @@ mod tests {
             let r: Flower = result.unwrap();
             data.push(r); // data contains all the records
         }
-        
+
         let flower_x_train: Vec<f32> = data.iter().flat_map(|r| r.into_feature_vector()).collect();
         assert_eq!(flower_x_train, [5.1, 3.5, 5.1, 0.2]);
     }
@@ -140,7 +149,7 @@ mod tests {
             let r: Flower = result.unwrap();
             data.push(r); // data contains all the records
         }
-        
+
         let flower_x_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
         assert_eq!(flower_x_train, [0.0]);
     }
