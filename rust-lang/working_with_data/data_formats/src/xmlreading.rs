@@ -15,7 +15,7 @@ struct Project {
 
 #[derive(Deserialize, Debug)]
 struct Libraries {
-    libraries: Vec<Library>,
+    library: Vec<Library>,
 }
 
 #[derive(Deserialize, Debug)]
