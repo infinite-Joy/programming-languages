@@ -1,0 +1,11 @@
+[package]
+name = "rust-simple-scraper"
+version = "0.1.0"
+authors = ["joydeep bhattacharjee"]
+edition = "2018"
+
+[dependencies]
+reqwest = "*"
+select = "*"
+scraper = "*"
+prettytable-rs = "*"

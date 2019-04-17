@@ -54,20 +54,12 @@ pub fn run() -> Result<(), Box<Error>> {
             "+44 2345678"
         ]
     }"#;
-    // in case i dont know the values of the file.
+    // random json string
     let person: serde_json::Value = serde_json::from_str(the_file).expect("JSON was not well-formatted");
     let address = person.get("Address").unwrap();
     println!("{:?}", address.get("City").unwrap());
 
-    // this is great but I am not leveraging the strongly types ability of RUst.
-    // using strongly typed data structures is great because you want the program to fail
-    // when the data format has changed. which they do a lot. and you want the information
-    // fast.
-
-    // reference https://github.com/serde-rs/json/issues/317
-
     println!("from prizes json file", );
-
     let file = File::open("data/prize.json")
         .expect("file should open read only");
     let prizes_data: Prizes = serde_json::from_reader(file)

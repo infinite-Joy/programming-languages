@@ -11,6 +11,7 @@ use std::env::args;
 
 mod jsonreading;
 mod xmlreading;
+mod csvreading;
 
 fn main() {
     let args: Vec<String> = args().collect();
@@ -23,7 +24,7 @@ fn main() {
         None => {println!("nothing", ); Ok(())},
         Some("json") => jsonreading::run(),
         Some("xml") => xmlreading::run(),
-        Some(_) => jsonreading::run(),
+        Some(_) => csvreading::run(),
     };
     // Putting the main code in another function serves two purposes:
     // 1. We can use the `?` operator.
