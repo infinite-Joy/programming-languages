@@ -21,6 +21,7 @@ fn main() -> Result<(), Error> {
                     warmest         DOUBLE PRECISION NOT NULL,
                     coldest         DOUBLE PRECISION NOT NULL
                   )", &[])?;
+    // data taken from https://www.yr.no/place/India/Karnataka/Bangalore/statistics.html
     let weathers = vec![
         ("January", 21.3, 27.3, 15.1),
         ("February", 23.6, 30.1, 17.0),
