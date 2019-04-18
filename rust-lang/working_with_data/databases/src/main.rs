@@ -1,14 +1,13 @@
 use postgres;
 use postgres::{Connection, TlsMode, Error};
-use postgres::types::FromSql;
 
 #[derive(Debug)]
 struct Weather {
     id: i32,
     month: String,
-    normal: f32,
-    warmest: f32,
-    coldest: f32
+    normal: f64,
+    warmest: f64,
+    coldest: f64
 }
 
 fn main() -> Result<(), Error> {
@@ -18,9 +17,9 @@ fn main() -> Result<(), Error> {
      conn.execute("CREATE TABLE IF NOT EXISTS weather (
                     id              SERIAL PRIMARY KEY,
                     month           VARCHAR NOT NULL,
-                    normal          FLOAT NOT NULL,
-                    warmest         FLOAT NOT NULL,
-                    coldest         FLOAT NOT NULL
+                    normal          DOUBLE PRECISION NOT NULL,
+                    warmest         DOUBLE PRECISION NOT NULL,
+                    coldest         DOUBLE PRECISION NOT NULL
                   )", &[])?;
     let weathers = vec![
         ("January", 21.3, 27.3, 15.1),
@@ -42,16 +41,21 @@ fn main() -> Result<(), Error> {
                  &[&weather.0, &weather.1, &weather.2, &weather.3])?;
     }
 
+    // print and see if they are correct
     for row in &conn.query("SELECT id, month, normal, warmest, coldest FROM weather", &[])? {
-        // let weather = Weather {
-        //     id: row.get(0),
-        //     month: row.get(1),
-        //     normal: FromSql::Into(row.get(2)),
-        //     warmest: row.get(3),
-        //     coldest: row.get(4)
-        // };
-        // println!("{:?}", weather);
-        let x: i16 = row.get(0).into();
+        let weather = Weather {
+            id: row.get(0),
+            month: row.get(1),
+            normal: row.get(2),
+            warmest: row.get(3),
+            coldest: row.get(4)
+        };
+        println!("{:?}", weather);
+    }
+    
+    // get the average value
+    for row in &conn.query("SELECT AVG(warmest) FROM weather;", &[])? {
+        let x: f64 = row.get(0);
         println!("{:?}", x);
     }
 
