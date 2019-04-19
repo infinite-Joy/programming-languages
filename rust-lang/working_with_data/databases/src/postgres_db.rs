@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use postgres;
 use postgres::{Connection, TlsMode, Error};
 

@@ -1,5 +1,8 @@
+use std::error::Error;
+
 use rusted_cypher;
-use rusted_cypher::{GraphClient, Statement, GraphError};
+// use rusted_cypher::{GraphClient, Statement, GraphError};
+use rusted_cypher::{GraphClient, Statement};
 use std::iter::repeat;
 
 pub fn run() -> Result<(), Box<Error>> {
