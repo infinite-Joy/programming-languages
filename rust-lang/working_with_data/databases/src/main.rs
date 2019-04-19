@@ -75,51 +75,63 @@ fn main() -> Result<(), GraphError> {
 
     let mut query = graph.query();
 
-    // // Statement implements From<&str>
-    // query.add_statement(
-    //     "CREATE (n:LANG { name: 'Rust', level: 'low', safe: true })");
-
-    // let statement = Statement::new(
-    //     "CREATE (n:LANG { name: 'C++', level: 'low', safe: {safeness} })")
-    //     .with_param("safeness", false)?;
-
-    // query.add_statement(statement);
-
-    // query.send()?;
-
-    // graph.exec(
-    //     "CREATE (n:LANG { name: 'Python', level: 'high', safe: true })")?;
-
-    // let result = graph.exec(
-    //     "MATCH (n:LANG) RETURN n.name, n.level, n.safe")?;
-
-    // assert_eq!(result.data.len(), 3);
-
-    // for row in result.rows() {
-    //     let name: String = row.get("n.name")?;
-    //     let level: String = row.get("n.level")?;
-    //     let safeness: bool = row.get("n.safe")?;
-    //     println!("name: {}, level: {}, safe: {}", name, level, safeness);
-    // }
-
-    // graph.exec("MATCH (n:LANG) DELETE n")?;
-
+    create index
     let statement1 = Statement::new(
-        "CREATE CONSTRAINT ON (m:Movie) ASSERT m.id IS UNIQUE;")?;
+        "CREATE CONSTRAINT ON (m:Movie) ASSERT m.id IS UNIQUE;");
     let statement2 = Statement::new(
         " CREATE CONSTRAINT ON (u:User) ASSERT u.id IS UNIQUE;"
-    )?;
+    );
     let statement3 = Statement::new(
         " CREATE CONSTRAINT ON (g:Genre) ASSERT g.name IS UNIQUE;"
-    )?;
-
-
+    );
 
     query.add_statement(statement1);
     query.add_statement(statement2);
     query.add_statement(statement3);
 
     query.send()?;
+
+    // import movies.csv
+    graph.exec(
+        "USING PERIODIC COMMIT LOAD CSV WITH HEADERS \
+        FROM \"http://172.17.0.1:8000/movies.csv\" AS line \
+        WITH line, SPLIT(line.genres, \"|\") AS Genres \
+        CREATE (m:Movie { id: TOINTEGER(line.`movieId`), title: line.`title` }) \
+        WITH Genres \
+        UNWIND RANGE(0, SIZE(Genres)-1) as i \
+        MERGE (g:Genre {name: UPPER(Genres[i])}) \
+        CREATE (m)-[r:GENRE {position:i+1}]->(g);"
+    )?;
+
+    // import ratings.csv
+    graph.exec(
+        " USING PERIODIC COMMIT LOAD CSV WITH HEADERS \
+        FROM \"http://172.17.0.1:8000/ratings.csv\" AS line \
+        WITH line \
+        MATCH (m:Movie { id: TOINTEGER(line.`movieId`) }) \
+        MATCH (u:User { id: TOINTEGER(line.`userId`) }) \
+        CREATE (u)-[r:RATING {rating: TOFLOAT(line.`rating`)}]->(m);"
+    )?;
+
+    // import tags
+    graph.exec(
+        " USING PERIODIC COMMIT LOAD CSV WITH HEADERS \
+        FROM \"http://172.17.0.1:8000/tags.csv\" AS line \
+        WITH line \
+        MATCH (m:Movie { id: TOINTEGER(line.`movieId`) }) \
+        MERGE (u:User { id: TOINTEGER(line.`userId`) }) \
+        CREATE (u)-[r:TAG {tag: line.`tag`}]->(m);"
+    )?;
+
+    let result = graph.exec(
+        "MATCH (u:User {id: 119}) RETURN u.id")?;
+
+    assert_eq!(result.data.len(), 1);
+
+    for row in result.rows() {
+        let id: u16 = row.get("u.id")?;
+        println!("user id: {}", id);
+    }
 
     Ok(())
 }
