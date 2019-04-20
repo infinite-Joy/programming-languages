@@ -28,12 +28,12 @@ use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
 use ml_utils;
 use ml_utils::datasets::Flower;
 
-fn test_list_buckets(client: &S3Client) {
+fn list_s3_buckets(client: &S3Client) {
     let result = client.list_buckets().sync().expect("Couldn't list buckets");
     println!("\nbuckets available: {:#?}", result);
 }
 
-fn test_create_bucket(client: &S3Client, bucket: &str) {
+fn create_s3_bucket(client: &S3Client, bucket: &str) {
     let create_bucket_req = CreateBucketRequest {
         bucket: bucket.to_owned(),
         ..Default::default()
@@ -58,7 +58,7 @@ fn list_items_in_bucket(client: &S3Client, bucket: &str) {
     println!("Items in bucket: {:#?}", result);
 }
 
-fn test_put_object_with_filename(
+fn push_file_to_s3(
     client: &S3Client,
     bucket: &str,
     dest_filename: &str,
@@ -112,7 +112,7 @@ fn delete_s3_bucket(client: &S3Client, bucket: &str) {
     }
 }
 
-fn test_get_object(client: &S3Client, bucket: &str, filename: &str) -> Result<String, Box<Error>> {
+fn pull_object_from_s3(client: &S3Client, bucket: &str, filename: &str) -> Result<String, Box<Error>> {
     let get_req = GetObjectRequest {
         bucket: bucket.to_owned(),
         key: filename.to_owned(),
@@ -155,21 +155,21 @@ fn main() -> Result<(), Box<Error>> {
         .wait()
         .unwrap();
     let client = S3Client::new(region.clone());
-    let s3_bucket = format!("rusoto-test-bucket");
+    let s3_bucket = format!("rust-ml-bucket");
     let filename = format!("iris.csv");
 
-    test_list_buckets(&client);
-    test_create_bucket(&client, &s3_bucket);
+    list_s3_buckets(&client);
+    create_s3_bucket(&client, &s3_bucket);
     list_items_in_bucket(&client, &s3_bucket);
-    test_put_object_with_filename(&client, &s3_bucket, &filename, "data/iris.csv");
-    let data = test_get_object(&client, &s3_bucket, &filename)?;
+    push_file_to_s3(&client, &s3_bucket, &filename, "data/iris.csv");
+    let data = pull_object_from_s3(&client, &s3_bucket, &filename)?;
 
     // go ahead with the csv module
     let mut rdr = csv::Reader::from_reader(data.as_bytes());
     let mut data = Vec::new();
     for result in rdr.deserialize() {
         let r: Flower = result?;
-        data.push(r); // data contains all the records
+        data.push(r);
     }
 
     // shuffle the data.
