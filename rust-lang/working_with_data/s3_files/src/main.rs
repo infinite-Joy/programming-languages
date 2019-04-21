@@ -158,9 +158,9 @@ fn main() -> Result<(), Box<Error>> {
     let s3_bucket = format!("rust-ml-bucket");
     let filename = format!("iris.csv");
 
-    list_s3_buckets(&client);
-    create_s3_bucket(&client, &s3_bucket);
-    list_items_in_bucket(&client, &s3_bucket);
+    // list_s3_buckets(&client);
+    // create_s3_bucket(&client, &s3_bucket);
+    // list_items_in_bucket(&client, &s3_bucket);
     push_file_to_s3(&client, &s3_bucket, &filename, "data/iris.csv");
     let data = pull_object_from_s3(&client, &s3_bucket, &filename)?;
 
