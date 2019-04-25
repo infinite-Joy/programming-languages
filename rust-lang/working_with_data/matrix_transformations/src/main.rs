@@ -22,10 +22,4 @@ fn main() {
     println!("{:?}", a_mm);
     println!("{:?}", a_mm.shape()); // output [2, 2]
     println!("------------------------", );
-
-    let biasterms = arr1(&[1., 1.]);
-    let increase_dims = stack(Axis(1), &[biasterms.view(), a_mm.view()]);
-    println!("------------------------", );
-
-
 }
