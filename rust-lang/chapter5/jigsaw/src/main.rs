@@ -12,6 +12,8 @@ use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use vtext::vectorize::CountVectorizer;
+use sprs::{CsMatBase, assign_to_dense};
+use ndarray::ArrayViewMut;
 
 // use ml_utils;
 // use ml_utils::sup_metrics::{accuracy, logloss_score};
@@ -42,7 +44,6 @@ pub struct SpookyAuthor {
 }
 
 impl SpookyAuthor {
-    // pub fn into_feature_vector(&self) -> Vec<f32> {
     pub fn into_labels(&self) -> f32 {
         match self.author.as_str() {
             "EAP" => 0.,
@@ -53,28 +54,28 @@ impl SpookyAuthor {
     }
 }
 
-fn build_vocabulary(data: Vec<SpookyAuthor>) {
+fn build_vocabulary(data: &Vec<SpookyAuthor>) -> CountVectorizer {
     let mut cv = CountVectorizer::new();
-    let data = vec![
-        SpookyAuthor { id: "id26305".to_string(),
-            text: "I market sometime.".to_string(),
-            author: "EAP".to_string() },
-        SpookyAuthor { id: "id26305".to_string(),
-            text: "I wall.".to_string(),
-            author: "EAP".to_string() }];
-    println!("{:?}", data);
     let mut all_text = vec![];
     for spooky_author in data {
-        all_text.push(spooky_author.text);
+        all_text.push(spooky_author.text.clone());
     }
-    println!("{:?}", all_text);
-    let abc = cv.fit_transform(&all_text[..]);
-    println!("{:?}", abc);
-    // let new_text = vec!["I market"];
-    let s = String::from("I market");
-    let new_text = vec![s];
-    let transformed = cv.transform(&new_text[..]);
-    println!("{:?}", transformed);
+    cv.fit(&all_text[..]);
+    // println!("{:?}", abc);
+    // // let new_text = vec!["I market"];
+    // let s = String::from("I market");
+    // let new_text = vec![s];
+    // let transformed = cv.transform(&new_text[..]);
+    // println!("{:?}", transformed);
+    cv
+}
+
+fn get_feature_vectors(data: &Vec<SpookyAuthor>, bow_model: &mut CountVectorizer) -> CsMatBase<i32, usize, std::vec::Vec<usize>, std::vec::Vec<usize>, std::vec::Vec<i32>> {
+    let mut all_text = vec![];
+    for spooky_author in data {
+        all_text.push(spooky_author.text.clone());
+    }
+    bow_model.transform(&all_text[..])
 }
 
 pub fn main() -> Result<(), Box<Error>> {
@@ -87,7 +88,12 @@ pub fn main() -> Result<(), Box<Error>> {
         break;
     }
     // println!("{:?}", data);
-    build_vocabulary(data);
+    let mut bow_model = build_vocabulary(&data);
+    let feature_vectors = get_feature_vectors(&data, &mut bow_model);
+    println!("{:?}", feature_vectors);
+    let mut a = ArrayViewMut::<f64>::zeros((2, 3, 2)).unwrap();
+    println!("{:?}", a);
+
 
     Ok(())
 }
