@@ -11,6 +11,7 @@ use csv;
 use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use vtext::vectorize::CountVectorizer;
 
 // use ml_utils;
 // use ml_utils::sup_metrics::{accuracy, logloss_score};
@@ -42,10 +43,6 @@ pub struct SpookyAuthor {
 
 impl SpookyAuthor {
     // pub fn into_feature_vector(&self) -> Vec<f32> {
-    pub fn into_feature_vector(&self) {
-        unimplemented!();
-    }
-
     pub fn into_labels(&self) -> f32 {
         match self.author.as_str() {
             "EAP" => 0.,
@@ -54,6 +51,13 @@ impl SpookyAuthor {
             l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
         }
     }
+}
+
+fn build_vocabulary(data: Vec<SpookyAuthor>) {
+    let mut cv = CountVectorizer::new();
+    let all_text = data.iter().map(|x| *x.text);
+    println!("{:?}", all_text);
+
 }
 
 pub fn main() -> Result<(), Box<Error>> {
@@ -65,7 +69,8 @@ pub fn main() -> Result<(), Box<Error>> {
         data.push(r); // data contains all the records
         break;
     }
-    println!("{:?}", data);
+    // println!("{:?}", data);
+    build_vocabulary(data);
 
     Ok(())
 }

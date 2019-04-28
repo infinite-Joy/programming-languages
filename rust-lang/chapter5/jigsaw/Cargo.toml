@@ -5,7 +5,11 @@ authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+# nlp related
 fasttext = "0.4.1"
+vtext = "0.1.0-alpha.1"
+
+# data reading and organisation
 csv = "1.0.7"
 serde = "1"
 serde_derive = "1"
