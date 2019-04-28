@@ -93,6 +93,12 @@ impl Flower {
     }
 }
 
+pub struct SpookyAuthor {
+    id: String,
+    text: String,
+    author: String
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
