@@ -55,9 +55,26 @@ impl SpookyAuthor {
 
 fn build_vocabulary(data: Vec<SpookyAuthor>) {
     let mut cv = CountVectorizer::new();
-    let all_text = data.iter().map(|x| *x.text);
+    let data = vec![
+        SpookyAuthor { id: "id26305".to_string(),
+            text: "I market sometime.".to_string(),
+            author: "EAP".to_string() },
+        SpookyAuthor { id: "id26305".to_string(),
+            text: "I wall.".to_string(),
+            author: "EAP".to_string() }];
+    println!("{:?}", data);
+    let mut all_text = vec![];
+    for spooky_author in data {
+        all_text.push(spooky_author.text);
+    }
     println!("{:?}", all_text);
-
+    let abc = cv.fit_transform(&all_text[..]);
+    println!("{:?}", abc);
+    // let new_text = vec!["I market"];
+    let s = String::from("I market");
+    let new_text = vec![s];
+    let transformed = cv.transform(&new_text[..]);
+    println!("{:?}", transformed);
 }
 
 pub fn main() -> Result<(), Box<Error>> {
