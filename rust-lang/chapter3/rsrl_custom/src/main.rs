@@ -137,11 +137,11 @@ impl Domain for CartPole {
 
     fn step(&mut self, action: usize) -> Transition<Vector<f64>, usize> {
         let from = self.emit();
-        println!("{:?}", from);
+        // println!("{:?}", from);
 
         self.update_state(action);
         let to = self.emit();
-        println!("{:?}", to);
+        // println!("{:?}", to);
         let reward = self.reward(&from, &to);
 
         Transition {
@@ -206,11 +206,12 @@ fn main() {
         // Realise 1000 episodes of the experiment generator.
         run(e, 10, Some(logger.clone()))
     };
-    println!("{:?}", _training_result[0].steps);
+    // println!("{:?}", _training_result[0].steps);
 
     // Testing phase:
     let testing_result = Evaluation::new(&mut agent, domain_builder).next().unwrap();
 
     info!(logger, "solution"; testing_result);
+    println!("{:?}", ALL_ACTIONS);
 
 }

@@ -13,7 +13,7 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 use vtext::vectorize::CountVectorizer;
 use sprs::{CsMatBase, assign_to_dense};
-use ndarray::ArrayViewMut;
+use ndarray::{ArrayViewMut2, Array};
 
 // use ml_utils;
 // use ml_utils::sup_metrics::{accuracy, logloss_score};
@@ -85,15 +85,21 @@ pub fn main() -> Result<(), Box<Error>> {
     for result in rdr.deserialize() {
         let r: SpookyAuthor = result?;
         data.push(r); // data contains all the records
-        break;
+        // break;
     }
     // println!("{:?}", data);
     let mut bow_model = build_vocabulary(&data);
     let feature_vectors = get_feature_vectors(&data, &mut bow_model);
-    println!("{:?}", feature_vectors);
-    let mut a = ArrayViewMut::<f64>::zeros((2, 3, 2)).unwrap();
-    println!("{:?}", a);
+    let feature_vectors_dense = feature_vectors.to_dense();
 
+    let y_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
+    let y_train = Array::from(y_train);
+    println!("{:?}", y_train.shape());
+    println!("{:?}", feature_vectors_dense.as_slice().unwrap().len());
+
+    // now we can probably load them to different vectors.
+
+    // check out the rust repl https://github.com/google/evcxr
 
     Ok(())
 }
