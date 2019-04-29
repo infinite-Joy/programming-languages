@@ -13,11 +13,12 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 use vtext::vectorize::CountVectorizer;
 use sprs::{CsMatBase, assign_to_dense};
-use ndarray::{ArrayViewMut2, Array};
+use ndarray::{ArrayViewMut2, Array as ndArray};
 
-// use ml_utils;
-// use ml_utils::sup_metrics::{accuracy, logloss_score};
-// use ml_utils::datasets::Flower;
+use rustlearn::prelude::Array as rl_arr;
+use rustlearn::traits::SupervisedModel;
+use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
+use rustlearn::metrics::{accuracy_score, roc_auc_score};
 
 /// Multi class version of Logarithmic Loss metric.
 ///
@@ -93,13 +94,19 @@ pub fn main() -> Result<(), Box<Error>> {
     let feature_vectors_dense = feature_vectors.to_dense();
 
     let y_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
-    let y_train = Array::from(y_train);
-    println!("{:?}", y_train.shape());
-    println!("{:?}", feature_vectors_dense.as_slice().unwrap().len());
+    let y_train = rl_arr::from(y_train);
+    // println!("{:?}", y_train.shape());
+    // println!("{:?}", feature_vectors_dense.as_slice().unwrap().len());
+    println!("{:?}", feature_vectors_dense.shape());
+    let feature_vectors_dense: Vec<f32> = feature_vectors_dense.as_slice().unwrap().iter().map(|&x| x as f32).collect(); // this probably gives memory error.
 
-    // now we can probably load them to different vectors.
+    let mut x_train = rl_arr::from(feature_vectors_dense);
+    x_train.reshape(19579, 25068);
 
-    // check out the rust repl https://github.com/google/evcxr
+    let mut model = libsvm_svc::new(25068, KernelType::RBF, 3).C(0.3).build();
+    model.fit(&x_train, &y_train)?;
+
+
 
     Ok(())
 }
