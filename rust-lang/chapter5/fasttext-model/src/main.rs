@@ -6,7 +6,7 @@ extern crate serde_derive;
 use std::io;
 use std::vec::Vec;
 use std::error::Error;
-use std::io::Write;                                                                                                                                                                  
+use std::io::Write;
 use std::fs::File;
 
 use csv;
@@ -15,6 +15,11 @@ use rand::thread_rng;
 use rand::seq::SliceRandom;
 
 use fasttext::{FastText, Args, ModelName, LossName};
+use stopwords;
+use std::collections::HashSet;
+use stopwords::{Spark, Language, Stopwords};
+use itertools::Itertools;
+use vtext::tokenize::VTextTokenizer;
 
 const TRAIN_FILE: &str = "data.train";
 const TEST_FILE: &str = "data.test";
@@ -28,6 +33,14 @@ pub struct SpookyAuthor {
 }
 
 impl SpookyAuthor {
+    pub fn into_tokens(&self) -> String {
+        let tok = VTextTokenizer::new("en");
+        let mut tokens: Vec<&str> = tok.tokenize(self.text.as_str()).collect();
+        let stops: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
+        tokens.retain(|s| !stops.contains(s));
+        tokens.iter().map(|&x| String::from(x)).join(" ")
+    }
+
     fn into_labels(&self) -> String {
         match self.author.as_str() {
             "EAP" => String::from("__label__EAP"),
@@ -38,7 +51,7 @@ impl SpookyAuthor {
     }
 
     pub fn into_training_string(&self) -> String {
-        [self.into_labels(), self.text.clone()].join(" ")
+        [self.into_labels(), self.into_tokens()].join(" ")
     }
 }
 

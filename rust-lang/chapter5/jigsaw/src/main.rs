@@ -12,13 +12,18 @@ use rand;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use vtext::vectorize::CountVectorizer;
+use vtext::tokenize::VTextTokenizer;
 use sprs::{CsMatBase, assign_to_dense};
 use ndarray::{ArrayViewMut2, Array as ndArray};
+use stopwords;
+use std::collections::HashSet;
+use stopwords::{Spark, Language, Stopwords};
 
 use rustlearn::prelude::Array as rl_arr;
 use rustlearn::traits::SupervisedModel;
 use rustlearn::svm::libsvm::svc::{Hyperparameters as libsvm_svc, KernelType};
 use rustlearn::metrics::{accuracy_score, roc_auc_score};
+use rustlearn::array::sparse::SparseRowArray;
 
 /// Multi class version of Logarithmic Loss metric.
 ///
@@ -45,6 +50,15 @@ pub struct SpookyAuthor {
 }
 
 impl SpookyAuthor {
+    pub fn into_tokens(&self) -> Vec<String> {
+        let tok = VTextTokenizer::new("en");
+        let lc_text = self.text.to_lowercase(); // convert to lowercase
+        let mut tokens: Vec<&str> = tok.tokenize(lc_text.as_str()).collect();
+        let stops: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
+        tokens.retain(|s| !stops.contains(s));
+        tokens.iter().map(|&x| String::from(x)).collect()
+    }
+
     pub fn into_labels(&self) -> f32 {
         match self.author.as_str() {
             "EAP" => 0.,
@@ -62,12 +76,6 @@ fn build_vocabulary(data: &Vec<SpookyAuthor>) -> CountVectorizer {
         all_text.push(spooky_author.text.clone());
     }
     cv.fit(&all_text[..]);
-    // println!("{:?}", abc);
-    // // let new_text = vec!["I market"];
-    // let s = String::from("I market");
-    // let new_text = vec![s];
-    // let transformed = cv.transform(&new_text[..]);
-    // println!("{:?}", transformed);
     cv
 }
 
@@ -86,25 +94,25 @@ pub fn main() -> Result<(), Box<Error>> {
     for result in rdr.deserialize() {
         let r: SpookyAuthor = result?;
         data.push(r); // data contains all the records
-        // break;
+        break;
     }
-    // println!("{:?}", data);
-    let mut bow_model = build_vocabulary(&data);
-    let feature_vectors = get_feature_vectors(&data, &mut bow_model);
-    let feature_vectors_dense = feature_vectors.to_dense();
+    println!("{:?}", data[0].into_tokens());
+    // let mut bow_model = build_vocabulary(&data);
+    // let feature_vectors = get_feature_vectors(&data, &mut bow_model);
+    // let feature_vectors_dense = feature_vectors.to_dense();
 
-    let y_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
-    let y_train = rl_arr::from(y_train);
+    // let y_train: Vec<f32> = data.iter().map(|r| r.into_labels()).collect();
+    // let y_train = ndArray::from(y_train);
     // println!("{:?}", y_train.shape());
     // println!("{:?}", feature_vectors_dense.as_slice().unwrap().len());
-    println!("{:?}", feature_vectors_dense.shape());
-    let feature_vectors_dense: Vec<f32> = feature_vectors_dense.as_slice().unwrap().iter().map(|&x| x as f32).collect(); // this probably gives memory error.
+    // println!("{:?}", feature_vectors_dense.shape());
+    // let feature_vectors_dense: Vec<f32> = feature_vectors_dense.as_slice().unwrap().iter().map(|&x| x as f32).collect(); // this probably gives memory error.
 
-    let mut x_train = rl_arr::from(feature_vectors_dense);
-    x_train.reshape(19579, 25068);
+    // let mut x_train = rl_arr::from(feature_vectors_dense);
+    // x_train.reshape(19579, 25068);
 
-    let mut model = libsvm_svc::new(25068, KernelType::RBF, 3).C(0.3).build();
-    model.fit(&x_train, &y_train)?;
+    // let mut model = libsvm_svc::new(25068, KernelType::RBF, 3).C(0.3).build();
+    // model.fit(&x_train, &y_train)?;
 
 
 
