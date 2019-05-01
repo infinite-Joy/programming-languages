@@ -20,6 +20,7 @@ use std::collections::HashSet;
 use stopwords::{Spark, Language, Stopwords};
 use itertools::Itertools;
 use vtext::tokenize::VTextTokenizer;
+use rust_stemmers::{Algorithm, Stemmer};
 
 const TRAIN_FILE: &str = "data.train";
 const TEST_FILE: &str = "data.test";
@@ -34,11 +35,25 @@ pub struct SpookyAuthor {
 
 impl SpookyAuthor {
     pub fn into_tokens(&self) -> String {
+        // convert all to lowercase
+        let lc_text = self.text.to_lowercase();
+
+        // tokenise the words
         let tok = VTextTokenizer::new("en");
-        let mut tokens: Vec<&str> = tok.tokenize(self.text.as_str()).collect();
-        let stops: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
+        let tokens: Vec<&str> = tok.tokenize(lc_text.as_str()).collect();
+
+        // stem the words
+        let en_stemmer = Stemmer::create(Algorithm::English);
+        let tokens: Vec<String> = tokens.iter().map(|x| en_stemmer.stem(x).into_owned()).collect();
+        let mut tokens: Vec<&str> = tokens.iter().map(|x| x.as_str()).collect();
+
+        // remove the stopwords
+        let stops: HashSet<_> = Spark::stopwords(Language::English)
+            .unwrap().iter().collect();
         tokens.retain(|s| !stops.contains(s));
-        tokens.iter().map(|&x| String::from(x)).join(" ")
+
+        // join the tokens and return
+        tokens.iter().join(" ")
     }
 
     fn into_labels(&self) -> String {
