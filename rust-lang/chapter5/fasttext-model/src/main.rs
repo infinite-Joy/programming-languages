@@ -64,16 +64,20 @@ impl SpookyAuthor {
             l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
         }
     }
-
-    pub fn into_training_string(&self) -> String {
-        [self.into_labels(), self.into_tokens()].join(" ")
-    }
 }
 
-fn push_data_to_file(data: &[SpookyAuthor], filename: &str) -> Result<(), Box<Error>> {
+fn push_training_data_to_file(train_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<Error>> {
     let mut f = File::create(filename)?;
-    for item in data {
-        writeln!(f, "{}", item.into_training_string())?;
+    for item in train_data {
+        writeln!(f, "{} {}", item.into_labels(), item.into_tokens())?;
+    }
+    Ok(())
+}
+
+fn push_test_data_to_file(test_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<Error>> {
+    let mut f = File::create(filename)?;
+    for item in test_data {
+        writeln!(f, "{}", item.into_tokens())?;
     }
     Ok(())
 }
@@ -93,8 +97,8 @@ fn main() -> Result<(), Box<Error>> {
     let test_size = test_size.round() as usize;
 
     let (test_data, train_data) = data.split_at(test_size);
-    push_data_to_file(train_data.to_owned(), TRAIN_FILE)?;
-    push_data_to_file(test_data.to_owned(), TEST_FILE)?;
+    push_training_data_to_file(train_data.to_owned(), TRAIN_FILE)?;
+    push_test_data_to_file(test_data.to_owned(), TEST_FILE)?;
 
     // model initiation and training
     let mut args = Args::new();
