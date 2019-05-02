@@ -65,14 +65,9 @@ pub struct NER {
 fn main() -> Result<(), Box<Error>> {
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
-    let mut c = 1;
     for result in rdr.deserialize() {
         let r: NER = result?;
         data.push(r);
-        // c += 1;
-        // if c >= 1788 {
-        //     break;
-        // }
     }
     println!("{:?}", data.len());
     data.shuffle(&mut thread_rng());
