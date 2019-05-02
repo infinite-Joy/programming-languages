@@ -94,25 +94,27 @@ fn check_accuracy(preds: &[String], actual: &[String]) {
         preds_clone.len());
 }
 
+fn crfmodel_training(xseq: Vec<Vec<Attribute>>, yseq: Vec<String>, model_name: &str) -> Result<(), Box<CrfError>> {
+    let mut trainer = Trainer::new(true);
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D)?;
+    trainer.append(&xseq, &yseq, 0i32)?;
+    trainer.train(model_name, -1i32)?; // using all instances for training.
+    Ok(())
+}
 
-fn main() -> Result<(), Box<CrfError>> {
+fn model_prediction(xtest: Vec<Vec<Attribute>>, model_name: &str) -> Result<Vec<String>, Box<CrfError>>{
+    let model = Model::from_file(model_name)?;
+    let mut tagger = model.tagger()?;
+    let preds = tagger.tag(&xtest)?;
+    Ok(preds)
+}
+
+fn main() {
     let data = get_data().unwrap();
     let (test_data, train_data) = split_test_train(&data, 0.2);
     let (xseq_train, yseq_train) = create_xseq_yseq(&train_data);
     let (xseq_test, yseq_test) = create_xseq_yseq(&test_data);
-
-    // model training
-    let mut trainer = Trainer::new(true);
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D)?;
-    trainer.append(&xseq_train, &yseq_train, 0i32)?;
-    trainer.train("rustml.crfsuite", -1i32)?;
-    drop(trainer);
-
-    // evaluation
-    let model = Model::from_file("rustml.crfsuite")?;
-    let mut tagger = model.tagger()?;
-    let preds = tagger.tag(&xseq_test)?;
+    crfmodel_training(xseq_train, yseq_train, "rustml.crfsuite").unwrap();
+    let preds = model_prediction(xseq_test, "rustml.crfsuite").unwrap();
     check_accuracy(&preds, &yseq_test);
-
-    Ok(())
 }
