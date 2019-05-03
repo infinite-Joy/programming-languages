@@ -16,8 +16,8 @@ use crfsuite::{Trainer, Algorithm, GraphicalModel};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct NER {
-    #[serde(rename = "")]
-    id: String,
+    // #[serde(rename = "")]
+    // id: String,
     lemma: String,
     #[serde(rename = "next-lemma")]
     next_lemma: String,
