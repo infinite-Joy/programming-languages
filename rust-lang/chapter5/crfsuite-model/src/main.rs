@@ -52,7 +52,7 @@ fn get_data() -> Result<Vec<NER>, Box<Error>> {
         let r: NER = result?;
         data.push(r);
     }
-    println!("{:?}", data.len());
+    // println!("{:?}", data.len());
     data.shuffle(&mut thread_rng());
     Ok(data)
 }
@@ -80,23 +80,23 @@ fn create_xseq_yseq(data: &[NER]) -> (Vec<Vec<Attribute>>, Vec<String>) {
 fn check_accuracy(preds: &[String], actual: &[String]) {
     let mut hits = 0;
     let mut correct_hits = 0;
-    let preds_clone = preds.clone();
     for (predicted, actual) in preds.iter().zip(actual) {
-        if predicted == actual {
-            correct_hits += 1;
+        if actual != "O" { // will not consider the other category as it bloats the accuracy.
+            if predicted == actual && actual != "O" {
+                correct_hits += 1;
+            }
+            hits += 1;    
         }
-        hits += 1;
     }
-    assert_eq!(hits, preds_clone.len());
     println!("accuracy={} ({}/{} correct)",
         correct_hits as f32 / hits as f32,
         correct_hits,
-        preds_clone.len());
+        hits);
 }
 
 fn crfmodel_training(xseq: Vec<Vec<Attribute>>, yseq: Vec<String>, model_name: &str) -> Result<(), Box<CrfError>> {
     let mut trainer = Trainer::new(true);
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D)?;
+    trainer.select(Algorithm::AROW, GraphicalModel::CRF1D)?;
     trainer.append(&xseq, &yseq, 0i32)?;
     trainer.train(model_name, -1i32)?; // using all instances for training.
     Ok(())
