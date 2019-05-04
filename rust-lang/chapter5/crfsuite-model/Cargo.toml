@@ -13,11 +13,3 @@ rand = "0.6.5"
 
 # machine learning
 crfsuite = "0.2.6"
-
-# text normalisation
-stopwords = "0.1.0"
-vtext = "0.1.0-alpha.1"
-rust-stemmers = "1.1.0"
-
-# others
-itertools = "0.8.0"
