@@ -22,8 +22,6 @@ struct Message {
 
 fn init_engine() -> SnipsNluEngine {
     let engine_dir = "/home/saionee/opensource/programming-languages/rust-lang/chapter5/snips-nlu-rs/snips.model2";
-    let top_intents = true;
-
     println!("\nLoading the nlu engine...");
     let engine = SnipsNluEngine::from_path(engine_dir).unwrap();
     engine
@@ -31,24 +29,24 @@ fn init_engine() -> SnipsNluEngine {
 
 #[get("/")]
 fn hello() -> &'static str {
-    "Hello, world!"
+    "Hello, from snips model inference!"
 }
 
 #[post("/infer", format = "json", data = "<message>")]
 fn infer(message: Json<Message>, engine: State<Engine>) -> String {
+    let query = message.0.contents;
     let engine = engine.lock().unwrap();
     let result = engine.get_intents(query.trim()).unwrap();
     let result_json = serde_json::to_string_pretty(&result).unwrap();
     result_json
-
 }
 
 
 fn rocket() -> Rocket {
-    // Initialize the `entries` table in the in-memory database.
+    // load the snips ingerence engine.
     let engine = init_engine();
 
-    // Have Rocket manage the database pool.
+    // Have Rocket manage the engine to be passed to the functions.
     rocket::ignite()
         .manage(Mutex::new(engine))
         .mount("/", routes![hello, infer])
