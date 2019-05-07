@@ -21,7 +21,7 @@ struct Message {
 }
 
 fn init_engine() -> SnipsNluEngine {
-    let engine_dir = "/home/saionee/opensource/programming-languages/rust-lang/chapter5/snips-nlu-rs/snips.model2";
+    let engine_dir = "/home/saionee/opensource/programming-languages/rust-lang/chapter5/snips-nlu-rs/snips.model";
     println!("\nLoading the nlu engine...");
     let engine = SnipsNluEngine::from_path(engine_dir).unwrap();
     engine
