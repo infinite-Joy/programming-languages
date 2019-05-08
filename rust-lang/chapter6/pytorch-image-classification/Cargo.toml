@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 tch = { path = "../tch-rs" }
+fs_extra = "1.1.0"
