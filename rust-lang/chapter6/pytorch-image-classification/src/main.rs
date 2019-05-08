@@ -4,9 +4,10 @@ use std::io::{BufReader, Read, Result};
 use std::error::Error;
 
 use tch::{kind, nn, nn::OptimizerConfig, Device, Kind, Tensor};
-use tch::vision::dataset::Dataset;
-use tch::vision::image::load_dir;
-use tch::vision::image::load_and_resize;
+// use tch::vision::dataset::Dataset;
+// use tch::vision::image::load_dir;
+// use tch::vision::image::load_and_resize;
+use tch::vision::imagenet::load_from_dir;
 
 const IMG_SIZE: i64 = 64;
 const LATENT_DIM: i64 = 128;
@@ -38,7 +39,8 @@ const SAMPLES_PER_FILE: i64 = 10000;
 fn main() {
     let device = Device::cuda_if_available();
     // let image_tensor = load_dir("101_ObjectCategories", 50, 50).unwrap();
-    let image_tensor = load_dir("test_image_dir", 50, 50).unwrap();
-    println!("{:?}", image_tensor.dim());
+    // let image_tensor = load_dir("test_image_dir", 50, 50).unwrap();
+    let image_dataset = load_from_dir("test_image_dir").unwrap();
+    println!("{:?}", image_dataset);
     println!("Hello, world!");
 }
