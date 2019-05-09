@@ -65,7 +65,8 @@ fn split_test_train(data: &[NER], test_size: f32) -> (Vec<NER>, Vec<NER>) {
     (test_data.to_vec(), train_data.to_vec())
 }
 
-fn create_xseq_yseq(data: &[NER]) -> (Vec<Vec<Attribute>>, Vec<String>) {
+fn create_xseq_yseq(data: &[NER]) 
+        -> (Vec<Vec<Attribute>>, Vec<String>) {
     let mut xseq = vec![];
     let mut yseq = vec![];
     for item in data {
@@ -94,7 +95,9 @@ fn check_accuracy(preds: &[String], actual: &[String]) {
         hits);
 }
 
-fn crfmodel_training(xseq: Vec<Vec<Attribute>>, yseq: Vec<String>, model_name: &str) -> Result<(), Box<CrfError>> {
+fn crfmodel_training(xseq: Vec<Vec<Attribute>>, 
+                     yseq: Vec<String>,
+                     model_name: &str) -> Result<(), Box<CrfError>> {
     let mut trainer = Trainer::new(true);
     trainer.select(Algorithm::AROW, GraphicalModel::CRF1D)?;
     trainer.append(&xseq, &yseq, 0i32)?;
@@ -102,7 +105,9 @@ fn crfmodel_training(xseq: Vec<Vec<Attribute>>, yseq: Vec<String>, model_name: &
     Ok(())
 }
 
-fn model_prediction(xtest: Vec<Vec<Attribute>>, model_name: &str) -> Result<Vec<String>, Box<CrfError>>{
+fn model_prediction(xtest: Vec<Vec<Attribute>>,
+                    model_name: &str)
+                    -> Result<Vec<String>, Box<CrfError>>{
     let model = Model::from_file(model_name)?;
     let mut tagger = model.tagger()?;
     let preds = tagger.tag(&xtest)?;
