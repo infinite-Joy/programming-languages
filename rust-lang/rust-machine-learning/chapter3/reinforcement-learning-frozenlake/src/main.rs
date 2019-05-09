@@ -2,18 +2,6 @@ extern crate rsrl;
 #[macro_use]
 extern crate slog;
 
-// use rsrl;
-// use rsrl::control::gtd::GreedyGQ;
-// use rsrl::core::{make_shared, run, Evaluation, Parameter, SerialExperiment};
-// use rsrl::domains::{Domain, MountainCar};
-// use rsrl::fa::basis::Composable;
-// use rsrl::fa::basis::fixed::Fourier;
-// use rsrl::fa::basis::LFA;
-// use rsrl::geometry::Space;
-// use rsrl::logging;
-// use rsrl::policies::fixed::{EpsilonGreedy, Greedy, Random};
-// use slog; // for logging
-
 use rsrl::{
     control::gtd::GreedyGQ,
     core::{make_shared, run, Evaluation, Parameter, SerialExperiment},
