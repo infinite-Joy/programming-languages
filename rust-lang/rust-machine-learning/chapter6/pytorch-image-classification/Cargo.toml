@@ -5,6 +5,6 @@ authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-#tch = { path = "../tch-rs" }
-tch = { git = "https://github.com/LaurentMazare/tch-rs.git", rev="8110ee6" }
+tch = { path = "../tch-rs" }
+# tch = { git = "https://github.com/LaurentMazare/tch-rs.git", rev="8110ee6" }
 failure = "*"
