@@ -6,18 +6,22 @@ use std::io;
 use std::fs::{self, DirEntry, copy, create_dir_all};
 use std::path::Path;
 
-
 use tch::{Device, Tensor, nn};
 use tch::nn::{ModuleT, OptimizerConfig, conv2d, linear};
 use tch::vision::imagenet::load_from_dir;
 use failure;
 
+// for the CNN
 const BATCH_SIZE: i64 = 32;
 const LABELS: i64 = 102;
 
 const W: i64 = 224;
-const H: i64 = 32;
+const H: i64 = 224;
 const C: i64 = 3;
+
+// for the simple nn
+const IMAGE_DIM: i64 = W * W * C;
+const HIDDEN_NODES: i64 = 128;
 
 const DATASET_FOLDER: &str = "dataset";
 
@@ -69,20 +73,20 @@ fn move_file(from_path: &DirEntry, to_path: &Path) -> io::Result<()> {
 // image dataset: http://www.vision.caltech.edu/Image_Datasets/Caltech101/
 
 #[derive(Debug)]
-struct Net {
+struct CnnNet {
     conv1: nn::Conv2D,
     conv2: nn::Conv2D,
     fc1: nn::Linear,
     fc2: nn::Linear,
 }
 
-impl Net {
-    fn new(vs: &nn::Path) -> Net {
+impl CnnNet {
+    fn new(vs: &nn::Path) -> CnnNet {
         let conv1 = conv2d(vs, C, 32, 5, Default::default());
         let conv2 = conv2d(vs, 32, 64, 5, Default::default());
         let fc1 = linear(vs, 1024, 1024, Default::default());
         let fc2 = linear(vs, 1024, LABELS, Default::default());
-        Net {
+        CnnNet {
             conv1,
             conv2,
             fc1,
@@ -91,7 +95,7 @@ impl Net {
     }
 }
 
-impl nn::ModuleT for Net {
+impl nn::ModuleT for CnnNet {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         xs.view(&[-1, C, H, W])
             .apply(&self.conv1)
@@ -100,6 +104,32 @@ impl nn::ModuleT for Net {
             .max_pool2d_default(2)
             .view(&[-1, 1024])
             .apply(&self.fc1)
+            .relu()
+            .dropout_(0.5, train)
+            .apply(&self.fc2)
+    }
+}
+
+#[derive(Debug)]
+struct SimpleNN {
+    fc1: nn::Linear,
+    fc2: nn::Linear,
+}
+
+impl SimpleNN {
+    fn new(vs: &nn::Path) -> SimpleNN {
+        let fc1 = linear(vs / "layer1", IMAGE_DIM, HIDDEN_NODES, Default::default());
+        let fc2 = linear(vs, HIDDEN_NODES, LABELS, Default::default());
+        SimpleNN {
+            fc1,
+            fc2,
+        }
+    }
+}
+
+impl nn::ModuleT for SimpleNN {
+    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+        xs.apply(&self.fc1)
             .relu()
             .dropout_(0.5, train)
             .apply(&self.fc2)
@@ -116,6 +146,8 @@ fn learning_rate(epoch: i64) -> f64 {
     }
 }
 
+
+
 fn main() -> failure::Fallible<()> {
     let args: Vec<String> = args().collect();
     let create_directories = if args.len() < 2 {
@@ -131,10 +163,11 @@ fn main() -> failure::Fallible<()> {
                let to_folder = Path::new("train");
                move_file(&x, &to_folder).unwrap();
             };
-            let move_to_test = |x: &DirEntry| {
-               let to_folder = Path::new("val");
-               move_file(&x, &to_folder).unwrap();
-            };
+            let move_to_test =
+                |x: &DirEntry| {
+                    let to_folder = Path::new("val");
+                    move_file(&x, &to_folder).unwrap();
+                };
             create_train_val_folders(
                 &obj_categories, &move_to_train, &move_to_test).unwrap();
         },
@@ -147,7 +180,8 @@ fn main() -> failure::Fallible<()> {
     println!("moving on with training.");
     let image_dataset = load_from_dir(DATASET_FOLDER).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    let net = Net::new(&vs.root());
+    // let net = Net::new(&vs.root());
+    let net = SimpleNN::new(&vs.root());
     for epoch in 1..100 {
         let opt = nn::Adam::default().build(&vs, learning_rate(epoch))?;
         for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
@@ -157,8 +191,11 @@ fn main() -> failure::Fallible<()> {
             opt.backward_step(&loss);
         }
         let test_accuracy =
-            net.batch_accuracy_for_logits(&image_dataset.test_images, &image_dataset.test_labels, vs.device(), 1024);
-        println!("epoch: {:4} test acc: {:5.2}%", epoch, 100. * test_accuracy,);
+            net.batch_accuracy_for_logits(&image_dataset.test_images,
+                                          &image_dataset.test_labels,
+                                          vs.device(), 1024);
+        println!("epoch: {:4} test acc: {:5.2}%",
+            epoch, 100. * test_accuracy,);
     }
     println!("Training done!");
     Ok(())
