@@ -61,14 +61,19 @@ pub fn main() -> failure::Fallible<()> {
     let dataset = imagenet::load_from_dir(dataset_dir)?;
     println!("{:?}", dataset);
 
-    // Create the model and load the weights from the file.
-    let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    let net = resnet::resnet18_no_final_layer(&vs.root());
-    vs.load(weights)?;
+    // // Create the model and load the weights from the file.
+    // let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
+    // let net = resnet::resnet18_no_final_layer(&vs.root());
+    // vs.load(weights)?;
 
-    // Pre-compute the final activations.
-    let train_images = tch::no_grad(|| dataset.train_images.apply_t(&net, false));
-    let test_images = tch::no_grad(|| dataset.test_images.apply_t(&net, false));
+    // Load the Python saved module.
+    let model = tch::CModule::load(weights)?;
+
+    // // Pre-compute the final activations.
+    // let train_images = tch::no_grad(|| dataset.train_images.apply_t(&net, false));
+    // let test_images = tch::no_grad(|| dataset.test_images.apply_t(&net, false)); // this is working
+    let train_images = tch::no_grad(|| model.forward(&[dataset.train_images.unsqueeze(0)]).unwrap().softmax(-1));
+    let test_images = tch::no_grad(|| model.forward(&[dataset.test_images.unsqueeze(0)]).unwrap().softmax(-1));
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let linear = nn::linear(vs.root(), 512, dataset.labels, Default::default());
