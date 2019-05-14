@@ -118,7 +118,7 @@ struct SimpleNN {
 
 impl SimpleNN {
     fn new(vs: &nn::Path) -> SimpleNN {
-        let fc1 = linear(vs / "layer1", IMAGE_DIM, HIDDEN_NODES, Default::default());
+        let fc1 = linear(vs / "layer1", 224, HIDDEN_NODES, Default::default());
         let fc2 = linear(vs, HIDDEN_NODES, LABELS, Default::default());
         SimpleNN {
             fc1,
@@ -129,10 +129,21 @@ impl SimpleNN {
 
 impl nn::ModuleT for SimpleNN {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.apply(&self.fc1)
-            .relu()
-            .dropout_(0.5, train)
-            .apply(&self.fc2)
+        let t = xs.view(&[-1, W]);
+        println!("{:?}", t.size());
+        let a = t.apply(&self.fc1);
+        println!("{:?}", a.size());
+        let mut b = a.relu();
+        println!("{:?}", b.size());
+        let c = b.dropout_(0.5, train);
+        println!("{:?}", c.size());
+        let d = c.apply(&self.fc2);
+        println!("{:?}", d.size());
+        d
+        // xs.apply(&self.fc1)
+        //     .relu()
+        //     .dropout_(0.5, train)
+        //     .apply(&self.fc2)
     }
 }
 
@@ -145,8 +156,6 @@ fn learning_rate(epoch: i64) -> f64 {
         1e-4
     }
 }
-
-
 
 fn main() -> failure::Fallible<()> {
     let args: Vec<String> = args().collect();
