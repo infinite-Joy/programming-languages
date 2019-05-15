@@ -25,14 +25,14 @@ const HIDDEN_NODES: i64 = 128;
 
 const DATASET_FOLDER: &str = "dataset";
 
-fn create_train_val_folders(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> io::Result<()> {
+fn visit_dir(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
         let mut this_label = String::from("");
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                create_train_val_folders(&path, train_fn, test_fn)?;
+                visit_dir(&path, train_fn, test_fn)?;
             } else {
                 let full_path: Vec<String> = path.to_str().unwrap()
                     .split("/").into_iter()
@@ -177,7 +177,7 @@ fn main() -> failure::Fallible<()> {
                     let to_folder = Path::new("val");
                     move_file(&x, &to_folder).unwrap();
                 };
-            create_train_val_folders(
+            visit_dir(
                 &obj_categories, &move_to_train, &move_to_test).unwrap();
         },
         Some(_) => {
