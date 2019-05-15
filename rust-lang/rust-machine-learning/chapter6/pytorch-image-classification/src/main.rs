@@ -96,19 +96,45 @@ impl CnnNet {
 }
 
 impl nn::ModuleT for CnnNet {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.view(&[-1, C, H, W])
-            .apply(&self.conv1)
-            .max_pool2d_default(2)
-            .apply(&self.conv2)
-            .max_pool2d_default(2)
-            .view(&[-1, 1024])
-            .apply(&self.fc1)
-            .relu()
-            .dropout_(0.5, train)
-            .apply(&self.fc2)
-    }
+   fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+       let xs_prime = xs.view(&[-1, C, H, W]);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.apply(&self.conv1);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.max_pool2d_default(2);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.apply(&self.conv2);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.max_pool2d_default(2);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.view(&[-1, 1024]);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.apply(&self.fc1);
+       println!("{:?}", xs_prime.size());
+       let mut xs_prime = xs_prime.relu();
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.dropout_(0.5, train);
+       println!("{:?}", xs_prime.size());
+       let xs_prime = xs_prime.apply(&self.fc2);
+       println!("{:?}", xs_prime.size());
+       xs_prime
+   }
 }
+
+// impl nn::ModuleT for CnnNet {
+//     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+//         xs.view(&[-1, C, H, W])
+//             .apply(&self.conv1)
+//             .max_pool2d_default(2)
+//             .apply(&self.conv2)
+//             .max_pool2d_default(2)
+//             .view(&[-1, 1024])
+//             .apply(&self.fc1)
+//             .relu()
+//             .dropout_(0.5, train)
+//             .apply(&self.fc2)
+//     }
+// }
 
 #[derive(Debug)]
 struct SimpleNN {
@@ -189,11 +215,12 @@ fn main() -> failure::Fallible<()> {
     println!("moving on with training.");
     let image_dataset = load_from_dir(DATASET_FOLDER).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    // let net = Net::new(&vs.root());
-    let net = SimpleNN::new(&vs.root());
+    let opt = nn::Adam::default().build(&vs, 1e-4)?;
+    let net = CnnNet::new(&vs.root());
+    //let net = SimpleNN::new(&vs.root());
     for epoch in 1..100 {
-        let opt = nn::Adam::default().build(&vs, learning_rate(epoch))?;
-        for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
+        for (bimages, blabels) in image_dataset.train_iter(224).shuffle().to_device(vs.device()) {
+            // println!("{:?}", blabels);
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
