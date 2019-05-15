@@ -14,6 +14,7 @@ use failure;
 // for the CNN
 const BATCH_SIZE: i64 = 32;
 const LABELS: i64 = 102;
+const EPOCHS: i64 = 100;
 
 const W: i64 = 224;
 const H: i64 = 224;
@@ -109,43 +110,6 @@ impl nn::ModuleT for CnnNet {
     }
 }
 
-#[derive(Debug)]
-struct SimpleNN {
-    fc1: nn::Linear,
-    fc2: nn::Linear,
-}
-
-impl SimpleNN {
-    fn new(vs: &nn::Path) -> SimpleNN {
-        let fc1 = linear(vs / "layer1", 224, HIDDEN_NODES, Default::default());
-        let fc2 = linear(vs, HIDDEN_NODES, LABELS, Default::default());
-        SimpleNN {
-            fc1,
-            fc2,
-        }
-    }
-}
-
-impl nn::ModuleT for SimpleNN {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        let t = xs.view(&[-1, W]);
-        println!("{:?}", t.size());
-        let a = t.apply(&self.fc1);
-        println!("{:?}", a.size());
-        let mut b = a.relu();
-        println!("{:?}", b.size());
-        let c = b.dropout_(0.5, train);
-        println!("{:?}", c.size());
-        let d = c.apply(&self.fc2);
-        println!("{:?}", d.size());
-        d
-        // xs.apply(&self.fc1)
-        //     .relu()
-        //     .dropout_(0.5, train)
-        //     .apply(&self.fc2)
-    }
-}
-
 fn learning_rate(epoch: i64) -> f64 {
     if epoch < 10 {
         0.1
@@ -188,11 +152,13 @@ fn main() -> failure::Fallible<()> {
     println!("moving on with training.");
     let image_dataset = load_from_dir(DATASET_FOLDER).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    // let net = Net::new(&vs.root());
-    let net = SimpleNN::new(&vs.root());
-    for epoch in 1..100 {
+    let net = CnnNet::new(&vs.root());
+    for epoch in 1..EPOCHS {
         let opt = nn::Adam::default().build(&vs, learning_rate(epoch))?;
-        for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
+        for (bimages, blabels) in image_dataset
+                                    .train_iter(BATCH_SIZE)
+                                    .shuffle()
+                                    .to_device(vs.device()) {
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
