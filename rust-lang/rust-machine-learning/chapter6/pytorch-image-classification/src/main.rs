@@ -37,13 +37,12 @@ fn visit_dir(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> i
                 let full_path: Vec<String> = path.to_str().unwrap()
                     .split("/").into_iter()
                     .map(|x| x[..].to_string()).collect();
-                // println!("{:?}", this_label);
-                // println!("{:?}", full_path);
                 if this_label == full_path[1] {
                     train_fn(&entry); // move the training file
                 } else {
                     test_fn(&entry); // move the testing file
                 }
+                // the second entry is the label
                 this_label = full_path[1].clone();
             }
         }
@@ -56,8 +55,8 @@ fn print_directory(dir: &Path) {
 }
 
 fn move_file(from_path: &DirEntry, to_path: &Path) -> io::Result<()> {
-    let highest_folder = Path::new(DATASET_FOLDER);
-    let second_order = highest_folder.join(to_path);
+    let root_folder = Path::new(DATASET_FOLDER);
+    let second_order = root_folder.join(to_path);
     let full_path: Vec<String> = from_path.path().to_str().unwrap()
         .split("/").into_iter().map(|x| x[..].to_string()).collect();
     let label = full_path[1].clone();
