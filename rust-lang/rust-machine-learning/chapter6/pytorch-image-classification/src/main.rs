@@ -12,8 +12,9 @@ use tch::vision::imagenet::load_from_dir;
 use failure;
 
 // for the CNN
-const BATCH_SIZE: i64 = 32;
+const BATCH_SIZE: i64 = 16;
 const LABELS: i64 = 102;
+const EPOCHS: i64 = 100;
 
 const W: i64 = 224;
 const H: i64 = 224;
@@ -25,25 +26,24 @@ const HIDDEN_NODES: i64 = 128;
 
 const DATASET_FOLDER: &str = "dataset";
 
-fn create_train_val_folders(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> io::Result<()> {
+fn visit_dir(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
         let mut this_label = String::from("");
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                create_train_val_folders(&path, train_fn, test_fn)?;
+                visit_dir(&path, train_fn, test_fn)?;
             } else {
                 let full_path: Vec<String> = path.to_str().unwrap()
                     .split("/").into_iter()
                     .map(|x| x[..].to_string()).collect();
-                // println!("{:?}", this_label);
-                // println!("{:?}", full_path);
                 if this_label == full_path[1] {
                     train_fn(&entry); // move the training file
                 } else {
                     test_fn(&entry); // move the testing file
                 }
+                // the second entry is the label
                 this_label = full_path[1].clone();
             }
         }
@@ -56,8 +56,8 @@ fn print_directory(dir: &Path) {
 }
 
 fn move_file(from_path: &DirEntry, to_path: &Path) -> io::Result<()> {
-    let highest_folder = Path::new(DATASET_FOLDER);
-    let second_order = highest_folder.join(to_path);
+    let root_folder = Path::new(DATASET_FOLDER);
+    let second_order = root_folder.join(to_path);
     let full_path: Vec<String> = from_path.path().to_str().unwrap()
         .split("/").into_iter().map(|x| x[..].to_string()).collect();
     let label = full_path[1].clone();
@@ -84,7 +84,7 @@ impl CnnNet {
     fn new(vs: &nn::Path) -> CnnNet {
         let conv1 = conv2d(vs, C, 32, 5, Default::default());
         let conv2 = conv2d(vs, 32, 64, 5, Default::default());
-        let fc1 = linear(vs, 1024, 1024, Default::default());
+        let fc1 = linear(vs, 179776, 1024, Default::default());
         let fc2 = linear(vs, 1024, LABELS, Default::default());
         CnnNet {
             conv1,
@@ -107,7 +107,7 @@ impl nn::ModuleT for CnnNet {
        println!("{:?}", xs_prime.size());
        let xs_prime = xs_prime.max_pool2d_default(2);
        println!("{:?}", xs_prime.size());
-       let xs_prime = xs_prime.view(&[-1, 1024]);
+       let xs_prime = xs_prime.view(&[BATCH_SIZE, -1]);
        println!("{:?}", xs_prime.size());
        let xs_prime = xs_prime.apply(&self.fc1);
        println!("{:?}", xs_prime.size());
@@ -135,43 +135,6 @@ impl nn::ModuleT for CnnNet {
 //             .apply(&self.fc2)
 //     }
 // }
-
-#[derive(Debug)]
-struct SimpleNN {
-    fc1: nn::Linear,
-    fc2: nn::Linear,
-}
-
-impl SimpleNN {
-    fn new(vs: &nn::Path) -> SimpleNN {
-        let fc1 = linear(vs / "layer1", 224, HIDDEN_NODES, Default::default());
-        let fc2 = linear(vs, HIDDEN_NODES, LABELS, Default::default());
-        SimpleNN {
-            fc1,
-            fc2,
-        }
-    }
-}
-
-impl nn::ModuleT for SimpleNN {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        let t = xs.view(&[-1, W]);
-        println!("{:?}", t.size());
-        let a = t.apply(&self.fc1);
-        println!("{:?}", a.size());
-        let mut b = a.relu();
-        println!("{:?}", b.size());
-        let c = b.dropout_(0.5, train);
-        println!("{:?}", c.size());
-        let d = c.apply(&self.fc2);
-        println!("{:?}", d.size());
-        d
-        // xs.apply(&self.fc1)
-        //     .relu()
-        //     .dropout_(0.5, train)
-        //     .apply(&self.fc2)
-    }
-}
 
 fn learning_rate(epoch: i64) -> f64 {
     if epoch < 10 {
@@ -203,7 +166,7 @@ fn main() -> failure::Fallible<()> {
                     let to_folder = Path::new("val");
                     move_file(&x, &to_folder).unwrap();
                 };
-            create_train_val_folders(
+            visit_dir(
                 &obj_categories, &move_to_train, &move_to_test).unwrap();
         },
         Some(_) => {
@@ -217,10 +180,8 @@ fn main() -> failure::Fallible<()> {
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let opt = nn::Adam::default().build(&vs, 1e-4)?;
     let net = CnnNet::new(&vs.root());
-    //let net = SimpleNN::new(&vs.root());
     for epoch in 1..100 {
-        for (bimages, blabels) in image_dataset.train_iter(224).shuffle().to_device(vs.device()) {
-            // println!("{:?}", blabels);
+        for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
