@@ -85,6 +85,7 @@ impl CnnNet {
         let conv1 = conv2d(vs, C, 32, 5, Default::default());
         let conv2 = conv2d(vs, 32, 64, 5, Default::default());
         let fc1 = linear(vs, 179776, 1024, Default::default());
+        // let fc1 = linear(vs, 1024, 1024, Default::default());
         let fc2 = linear(vs, 1024, LABELS, Default::default());
         CnnNet {
             conv1,
@@ -108,6 +109,7 @@ impl nn::ModuleT for CnnNet {
        let xs_prime = xs_prime.max_pool2d_default(2);
        println!("{:?}", xs_prime.size());
        let xs_prime = xs_prime.view(&[BATCH_SIZE, -1]);
+    //    let xs_prime = xs_prime.view(&[-1, 1024]);
        println!("{:?}", xs_prime.size());
        let xs_prime = xs_prime.apply(&self.fc1);
        println!("{:?}", xs_prime.size());
@@ -194,6 +196,7 @@ fn main() -> failure::Fallible<()> {
         println!("epoch: {:4} test acc: {:5.2}%",
             epoch, 100. * test_accuracy,);
     }
+    vs.save("model.ot")?;
     println!("Training done!");
     Ok(())
 }
