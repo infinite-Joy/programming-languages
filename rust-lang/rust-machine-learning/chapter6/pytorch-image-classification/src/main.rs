@@ -8,7 +8,7 @@ use std::path::Path;
 
 use tch::{Device, Tensor, nn};
 use tch::nn::{ModuleT, OptimizerConfig, conv2d, linear};
-use tch::vision::imagenet::load_from_dir;
+use tch::vision::imagenet::{load_from_dir, load_image_and_resize224, top};
 use failure;
 
 // for the CNN
@@ -130,7 +130,7 @@ impl nn::ModuleT for CnnNet {
             .max_pool2d_default(2)
             .apply(&self.conv2)
             .max_pool2d_default(2)
-            .view(&[-1, 1024])
+            .view(&[BATCH_SIZE, -1])
             .apply(&self.fc1)
             .relu()
             .dropout_(0.5, train)
@@ -180,14 +180,19 @@ fn main() -> failure::Fallible<()> {
     println!("moving on with training.");
     let image_dataset = load_from_dir(DATASET_FOLDER).unwrap();
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    let opt = nn::Adam::default().build(&vs, 1e-4)?;
+    let optimizer = nn::Adam::default().build(&vs, 1e-4)?;
     let net = CnnNet::new(&vs.root());
     for epoch in 1..100 {
         for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
+            // let outputs = net
+            //     .forward_t(&bimages, true);
+            // println!("outputs done {:?}", outputs.size());
+            // let loss = outputs
+            //     .cross_entropy_for_logits(&blabels);
             let loss = net
                 .forward_t(&bimages, true)
                 .cross_entropy_for_logits(&blabels);
-            opt.backward_step(&loss);
+            optimizer.backward_step(&loss);
         }
         let test_accuracy =
             net.batch_accuracy_for_logits(&image_dataset.test_images,
@@ -196,7 +201,32 @@ fn main() -> failure::Fallible<()> {
         println!("epoch: {:4} test acc: {:5.2}%",
             epoch, 100. * test_accuracy,);
     }
+    // model saving
     vs.save("model.ot")?;
     println!("Training done!");
+
+
+
+    // model loading and prediction
+    let weights = Path::new("model.ot");
+    let image = "image.jpg"; // save an image in the path.
+
+    // Load the image file and resize it to the usual imagenet dimension of 224x224.
+    let image = load_image_and_resize224(image)?;
+
+    // Create the model and load the weights from the file.
+    let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
+    let net: Box<dyn ModuleT> = Box::new(CnnNet::new(&vs.root()));
+    vs.load(weights)?;
+
+    // Apply the forward pass of the model to get the logits.
+    let output = net
+        .forward_t(&image.unsqueeze(0), /*train=*/ false)
+        .softmax(-1); // Convert to probability.
+
+    // Print the top 5 categories for this image.
+    for (probability, class) in top(&output, 5).iter() {
+        println!("{:50} {:5.2}%", class, 100.0 * probability)
+    }
     Ok(())
 }
