@@ -41,13 +41,13 @@ impl nn::ModuleT for Net {
 }
 
 // FGSM attack code
-fn fgsm_attack(image: &Tensor, epsilon: f32, data_grad: &Tensor) -> Tensor {
+fn fgsm_attack(image: &Tensor, epsilon: f64, data_grad: &Tensor) -> Tensor {
     // Collect the element-wise sign of the data gradient
     let sign_data_grad = data_grad.sign();
     // Create the perturbed image by adjusting each pixel of the input image
     // let perturbed_image = image + epsilon*sign_data_grad;
-    let change = sign_data_grad.(&epsilon).unwrap();
-    let perturbed_image = image + change;
+    let change = sign_data_grad * epsilon;
+    let mut perturbed_image = image + change;
     // # Adding clipping to maintain [0,1] range
     let perturbed_image = perturbed_image.clamp_(0., 1.);
     // # Return the perturbed image
