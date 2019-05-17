@@ -39,18 +39,19 @@ pub fn main() -> failure::Fallible<()> {
 
     let vs = nn::VarStore::new(tch::Device::Cpu);
     let linear = nn::linear(vs.root(), 512, dataset.labels, Default::default());
-    let sgd = nn::Sgd::default().build(&vs, 1e-3)?;
 
+    let optimizer = nn::Adam::default().build(&vs, 1e-4)?;
     for epoch_idx in 1..1001 {
         let predicted = train_images.apply(&linear);
         let loss = predicted.cross_entropy_for_logits(&dataset.train_labels);
-        sgd.backward_step(&loss);
+        optimizer.backward_step(&loss);
 
         let test_accuracy = test_images
             .apply(&linear)
             .accuracy_for_logits(&dataset.test_labels);
         println!("{} {:.2}%", epoch_idx, 100. * f64::from(test_accuracy));
     }
+    vs.save("model.ot")?;
 
 
     // let args: Vec<_> = std::env::args().collect();
