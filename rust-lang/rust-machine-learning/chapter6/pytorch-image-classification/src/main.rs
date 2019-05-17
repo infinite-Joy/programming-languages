@@ -182,7 +182,7 @@ fn main() -> failure::Fallible<()> {
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let optimizer = nn::Adam::default().build(&vs, 1e-4)?;
     let net = CnnNet::new(&vs.root());
-    for epoch in 1..100 {
+    for epoch in 1..EPOCHS {
         for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
             // let outputs = net
             //     .forward_t(&bimages, true);
