@@ -87,6 +87,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bbox_res: Tensor<f32> = args.fetch(bbox)?;
     let prob_res: Tensor<f32> = args.fetch(prob)?;
 
+    println!("{:?}", bbox_res.dims()); // [120, 4]
+    println!("{:?}", prob_res.dims()); // [120]
+
     //Let's store the results as a Vec<BBox>
     let bboxes: Vec<_> = bbox_res
         .chunks_exact(4) // Split into chunks of 4
