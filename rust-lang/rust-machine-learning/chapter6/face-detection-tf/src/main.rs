@@ -35,18 +35,27 @@ pub struct BBox {
     pub prob: f32,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
+/// read image, convert to RGB and load to a tensor
+/// for face prediction.
+fn get_input_image_tensor(opt: &Opt) -> Result<Tensor<f32>, Box<dyn Error>> {
     let input_image = image::open(&opt.input)?;
-
+    
     let mut flattened: Vec<f32> = Vec::new();
     for (_x, _y, rgb) in input_image.pixels() {
         flattened.push(rgb[2] as f32);
         flattened.push(rgb[1] as f32);
         flattened.push(rgb[0] as f32);
     }
-    let input = Tensor::new(&[input_image.height() as u64, input_image.width() as u64, 3])
+    let input = Tensor::new(
+        &[input_image.height() as u64, input_image.width() as u64, 3])
         .with_values(&flattened)?;
+    Ok(input)
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let opt = Opt::from_args();
+    println!("{:?}", (opt.input.to_owned(), opt.output.to_owned()));
+    let input = get_input_image_tensor(&opt)?;
 
     //First, we load up the graph as a byte array
     let model = include_bytes!("../mtcnn.pb");
@@ -91,14 +100,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         }).collect();
     println!("BBox Length: {}, Bboxes:{:#?}", bboxes.len(), bboxes);
 
-    let mut output_image = input_image;
+    let mut output_image = image::open(&opt.input)?;
 
     for bbox in bboxes {
         let rect = Rect::at(bbox.x1 as i32, bbox.y1 as i32)
             .of_size((bbox.x2 - bbox.x1) as u32, (bbox.y2 - bbox.y1) as u32);
         draw_hollow_rect_mut(&mut output_image, rect, LINE_COLOUR);
     }
-    output_image.save(&opt.output);
+    output_image.save(&opt.output)?;
 
     Ok(())
 }
