@@ -11,6 +11,7 @@ extern crate serde;
 // these later.
 extern crate serde_json;
 
+use crate::Opt::Predict;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
@@ -318,13 +319,7 @@ fn predict(input_titles: &[String],
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "goodbooks-recommender", about = "Books Recommendation")]
-struct Opt {
-    #[structopt(subcommand)]
-    command: Command
-}
-
-#[derive(Debug, StructOpt)]
-enum Command {
+enum Opt {
     #[structopt(name = "fit")]
     /// Will fit the model.
     Fit,
@@ -345,9 +340,9 @@ struct BookName {
 
 fn main() {
     let opt = Opt::from_args();
-    match opt.command {
-        Command::Fit => main_build(),
-        Command::Predict(book) => {
+    match opt {
+        Opt::Fit => main_build(),
+        Predict(book) => {
             let model = deserialize_model()
                 .expect("Unable to deserialize model.");
             let tokens: Vec<String> = book.text.split(",").map(
