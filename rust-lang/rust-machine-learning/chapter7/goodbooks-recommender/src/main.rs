@@ -11,34 +11,27 @@ extern crate serde;
 // these later.
 extern crate serde_json;
 
-// Make sure we have our third-party dependencies.
-// (This is going away in future Rust, since it
-// simply duplicates what's already in Cargo.toml.)
-extern crate reqwest;
-extern crate failure;
-extern crate csv;
-extern crate sbr;
-extern crate rand;
-
-// Need to import a couple of things from
-// the standard library
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 use std::collections::HashMap;
 use std::io::BufReader;
 
-use rand::SeedableRng;
-
+use reqwest;
+use failure;
+use csv;
+use sbr;
+use sbr::OnlineRankingModel;
 use sbr::models::ewma::{Hyperparameters, ImplicitEWMAModel};
 use sbr::models::{Loss, Optimizer};
-use sbr::data::{Interaction, Interactions};
-// We perform a split where the train and test
-// sets are disjoint on the user dimension: no
-// single user is in both.
 use sbr::data::user_based_split;
-use sbr::OnlineRankingModel;
+use sbr::data::{Interaction, Interactions};
 use sbr::evaluation::mrr_score;
+use rand;
+use rand::XorShiftRng;
+use rand::SeedableRng;
+use structopt;
+use structopt::StructOpt;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -195,7 +188,7 @@ fn fit(model: &mut ImplicitEWMAModel,
        -> Result<f32, failure::Error> {
 
     // Use a fixed seed for repeatable results.
-    let mut rng = rand::XorShiftRng::from_seed([42; 16]);
+    let mut rng = XorShiftRng::from_seed([42; 16]);
 
     let (train, test) = user_based_split(data,
                                          &mut rng,
@@ -216,6 +209,8 @@ fn serialize_model(model: &ImplicitEWMAModel,
 
     Ok(serde_json::to_writer(&mut writer, model)?)
 }
+
+
 
 /// Download training data and build a model.
 ///
@@ -321,33 +316,48 @@ fn predict(input_titles: &[String],
        .collect())
 }
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "goodbooks-recommender", about = "Books Recommendation")]
+struct Opt {
+    #[structopt(subcommand)]
+    command: Command
+}
+
+#[derive(Debug, StructOpt)]
+enum Command {
+    #[structopt(name = "fit")]
+    /// Will fit the model.
+    Fit,
+    #[structopt(name = "predict")]
+    /// Will predict the model based on the string after this. Please run
+    /// this only after fit has been run and the model has been saved.
+    Predict(BookName),
+}
+
+// Subcommand can also be externalized by using a 1-uple enum variant
+#[derive(Debug, StructOpt)]
+struct BookName {
+    #[structopt(short = "t", long = "text")]
+    /// Write the text for the book that you want to predict
+    /// Multiple books can be passed in a comma separated manner
+    text: String,
+}
 
 fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-
-    if args.is_empty() {
-        println!("First argument must be \
-                  one of 'fit' or 'predict'.");
-        return ();
-    }
-
-    // We need to convert a `String` into a
-    // `&str` here. This is one of the few
-    // cases where Rust's ergonomics still
-    // have some way to go.
-    match args[0].as_ref() {
-        "fit" => main_build(),
-        "predict" => {
+    let opt = Opt::from_args();
+    match opt.command {
+        Command::Fit => main_build(),
+        Command::Predict(book) => {
             let model = deserialize_model()
                 .expect("Unable to deserialize model.");
-            let predictions = predict(&args[1..], &model)
+            let tokens: Vec<String> = book.text.split(",").map(
+                |s| s.to_string()).collect();
+            let predictions = predict(&tokens, &model)
                 .expect("Unable to get predictions");
             println!("Predictions:");
             for prediction in predictions {
-                println!("    {}", prediction);
+                println!("{}", prediction);
             }
         },
-        _ => println!("First argument must be \
-                       one of 'fit' or 'predict'."),
     }
 }
