@@ -36,7 +36,7 @@ use structopt::StructOpt;
 
 
 #[derive(Debug, Serialize, Deserialize)]
-struct WishlistEntry {
+struct UserReadsBook {
     user_id: usize,
     book_id: usize,
 }
@@ -92,9 +92,9 @@ fn download_data(ratings_path: &Path, books_path: &Path) {
 }
 
 /// Deserialize from file at `path` into a vector of
-/// `WishlistEntry`.
+/// `UserReadsBook`.
 fn deserialize_ratings(path: &Path)
-               -> Result<Vec<WishlistEntry>, failure::Error> {
+               -> Result<Vec<UserReadsBook>, failure::Error> {
 
     let mut reader = csv::Reader::from_path(path)?;
 
@@ -150,7 +150,7 @@ fn build_model(num_items: usize) -> ImplicitEWMAModel {
     hyperparameters.build()
 }
 
-fn build_interactions(data: &[WishlistEntry]) -> Interactions {
+fn build_interactions(data: &[UserReadsBook]) -> Interactions {
     // If the collection is empty, `max` doesn't exist. This
     // is why we get an Option back, which we then unwrap.
     let num_users = data
