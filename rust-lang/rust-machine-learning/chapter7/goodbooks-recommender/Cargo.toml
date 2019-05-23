@@ -1,0 +1,15 @@
+[package]
+name = "goodbooks-recommender"
+version = "0.1.0"
+authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+reqwest = "*"
+failure = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+csv = "*"
+sbr = "*"
+rand = "*"
