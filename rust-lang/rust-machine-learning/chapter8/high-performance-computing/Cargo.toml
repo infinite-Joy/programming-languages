@@ -5,5 +5,5 @@ authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-faster = "0.5.0"
-criterion = "0.2.11"
+# faster = "0.5.0"
+faster = { path = "../faster" }

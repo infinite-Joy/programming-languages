@@ -1,23 +1,26 @@
-#[macro_use]
-extern crate criterion;
+use faster::*;
 
-use criterion::Criterion;
-use criterion::black_box;
+fn main() {
+    let lots_of_3s = (&[-123.456f32; 128][..]).simd_iter(f32s(0.0))
+        .simd_map(|v| {
+            f32s(9.0) * v.abs().sqrt().rsqrt().ceil().sqrt() - f32s(4.0) - f32s(2.0)
+        })
+        .scalar_collect();
+    println!("{:?}", lots_of_3s);
 
-fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n-1) + fibonacci(n-2),
-    }
+    // making a parallel operation
+    let my_vector: Vec<f32> = (0..10).map(|v| v as f32).collect();
+    let power_of_3 = (&my_vector[..]).simd_iter(f32s(0.0))
+        .simd_map(|v| {
+            v * v * v
+        })
+        .scalar_collect();
+    println!("{:?}", power_of_3);
+
+    // taking the sum
+    let reduced = (&power_of_3[..]).simd_iter(f32s(0.0))
+        .simd_reduce(f32s(0.0), |a, v| a + v ).sum();
+    println!("{:?}", reduced);
+
+
 }
-
-fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
-}
-
-fn fn main() {
-    criterion_group!(benches, criterion_benchmark);
-    criterion_main!(benches);
-}
-
