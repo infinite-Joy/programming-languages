@@ -140,7 +140,9 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let a = arr2(&[[1.,2.,3.], [4.,5.,6.]]);
     let b = stack(Axis(0), &[a.column(1).view(), a.column(2).view()]).unwrap();
     let b = Array::from_iter(b.iter());
-    let b = b.reshape((2,2));
+    println!("{:?}", b);
+    let b = b.into_shape((2, 2)).unwrap();
+    let b = b.t();
     println!("{:?}", b);
     Ok(SIF)
 }
