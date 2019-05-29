@@ -153,7 +153,7 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let b = b.into_shape((2, 2)).unwrap();
     let b = b.t();
     println!("{:?}", b);
-    println!("{:?}", b.fold(0.0f32, |a, &b| a + b));
+    println!("{:?}", b.column(0).fold(0.0f32, |a, &b| a + b));
     Ok(SIF)
 }
 
