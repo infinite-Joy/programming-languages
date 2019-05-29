@@ -58,6 +58,18 @@ fn convert_to_log_scale(X: &Array2<f64>) -> Array2<f64> {
     X.mapv(|x| x.ln()/two_log)
 }
 
+fn mean_of_samples(UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Vec<f64>{
+    let mut cols = Vec::new();
+    for &muc_columns in UC {
+        let col = gene_expression_measures_matrix.column(muc_columns);
+        cols.push(col);
+    }
+    let MUC = stack(Axis(0), &cols[..]).unwrap();
+    let MUC = Array::from_iter(MUC.iter());
+    let MUC = MUC.into_shape((22283, 26)).unwrap();
+    (0..26).map(|i| MUC.column(i).fold(0.0f64, |a, &b| a + b)).collect()
+}
+
 
 fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let mut SIF = HashMap::new();
@@ -126,20 +138,9 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let gene_expression_measures_matrix = convert_to_log_scale(&gene_expression_measures_matrix);
     let (UC, CD) = different_samples(&STP);
     println!("{:?}", gene_expression_measures_matrix.shape());
-    println!("UC {:?}", UC);
-    let mut cols = Vec::new();
-    for muc_columns in UC {
-        let col = gene_expression_measures_matrix.column(muc_columns);
-        cols.push(col);
-        // let col_mean = col.mean_axis(Axis(1));
-        // println!("col_mean {:?}", col_mean);
-    }
-    println!("{:?}", cols.len());
-    let MUC = stack(Axis(0), &cols[..]).unwrap();
-    let MUC = Array::from_iter(MUC.iter());
-    println!("{:?}", MUC.shape());
-    let MUC = MUC.into_shape((22283, 26)).unwrap();
-    let MUC = MUC.t();
+
+    let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
+    println!("{:?}", MUC);
 
     // let MUC: Vec<Array1<f64>> = UC.iter().map(|&c| gene_expression_measures_matrix.column(c)).collect();
     // println!("MUC {:?}", MUC);
