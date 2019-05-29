@@ -126,12 +126,21 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let gene_expression_measures_matrix = convert_to_log_scale(&gene_expression_measures_matrix);
     let (UC, CD) = different_samples(&STP);
     println!("{:?}", gene_expression_measures_matrix.shape());
-    // println!("UC {:?}", UC);
-    // for muc_columns in UC {
-    //     let col = gene_expression_measures_matrix.column(muc_columns);
-    //     let col_mean = col.mean_axis(Axis(1));
-    //     println!("col_mean {:?}", col_mean);
-    // }
+    println!("UC {:?}", UC);
+    let mut cols = Vec::new();
+    for muc_columns in UC {
+        let col = gene_expression_measures_matrix.column(muc_columns);
+        cols.push(col);
+        // let col_mean = col.mean_axis(Axis(1));
+        // println!("col_mean {:?}", col_mean);
+    }
+    println!("{:?}", cols.len());
+    let MUC = stack(Axis(0), &cols[..]).unwrap();
+    let MUC = Array::from_iter(MUC.iter());
+    println!("{:?}", MUC.shape());
+    let MUC = MUC.into_shape((22283, 26)).unwrap();
+    let MUC = MUC.t();
+
     // let MUC: Vec<Array1<f64>> = UC.iter().map(|&c| gene_expression_measures_matrix.column(c)).collect();
     // println!("MUC {:?}", MUC);
     // let MUC_4 = gene_expression_measures_matrix.column(42);
@@ -144,6 +153,7 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     let b = b.into_shape((2, 2)).unwrap();
     let b = b.t();
     println!("{:?}", b);
+    println!("{:?}", b.fold(0.0f32, |a, &b| a + b));
     Ok(SIF)
 }
 
