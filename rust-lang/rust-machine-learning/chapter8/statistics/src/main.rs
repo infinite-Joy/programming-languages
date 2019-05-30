@@ -8,24 +8,20 @@ use std::collections::HashMap;
 use std::f64;
 
 use ndarray;
-use ndarray::{Array, ArrayBase, Array2, Array1, Axis, arr2, stack};
-use ndarray::prelude::*;
+use ndarray::{Array, Array2, Array1, Axis, stack};
 
 // https://nbviewer.jupyter.org/urls/umich.box.com/shared/static/7kh8amlez7bx3qlqa6aa.ipynb?create=1
 
 fn process_gene_expresssion_data_headers(thisline: &String, SIF: &HashMap<String, String>) -> (Vec<String>, Vec<String>, Vec<usize>) {
-    println!(" this line: {:?}", thisline);
     let SID: Vec<String> = thisline.split("\t").map(|s| s.to_owned()).collect();
     let indices: Vec<usize> = SID.iter()
                 .enumerate()
                 .filter(|&(_, x)| x.starts_with("GSM") )
                 .map(|(i, _)| i).collect();
     let SID: Vec<String> = indices.iter().map(|&i| SID[i].clone()).collect();
-    // println!(" sid: {:?}", SID);
     let STP: Vec<String> = SID.iter().map(
         |k| SIF.get(&k.to_string()).unwrap())
         .cloned().collect();
-    // println!(" STP: {:?}", STP);
     (SID, STP, indices)
 }
 
@@ -33,10 +29,12 @@ fn process_gene_expresssion_data_headers(thisline: &String, SIF: &HashMap<String
 fn process_gene_expresssion_data(thisline: &String, indices: &Vec<usize>, SIF: &HashMap<String, String>) -> (Vec<f64>, String) {
     let gene_expression_measure_values: Vec<String> = thisline.split("\t")
         .map(|s| s.to_owned()).collect();
-    // println!("gene_expression_measure_values {:?}", gene_expression_measure_values);
-    let gene_expression_measures = indices.iter().map(|&i| gene_expression_measure_values[i].clone());
-    let gene_expression_measures: Vec<f64> = gene_expression_measures.map(|x| x.parse().unwrap()).collect();
-    let gene_identifiers = vec![gene_expression_measure_values[0].clone(), gene_expression_measure_values[1].clone()].join(";");
+    let gene_expression_measures = indices.iter().map(
+        |&i| gene_expression_measure_values[i].clone());
+    let gene_expression_measures: Vec<f64> = gene_expression_measures.map(
+        |x| x.parse().unwrap()).collect();
+    let gene_identifiers = vec![gene_expression_measure_values[0].clone(),
+        gene_expression_measure_values[1].clone()].join(";");
     (gene_expression_measures, gene_identifiers)
 }
 
@@ -74,30 +72,29 @@ fn filter_out_relevant_columns(samples: &Vec<usize>, gene_expression_measures_ma
 
 fn mean_of_samples(samples: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Array1<f64> {
     let Msamples = filter_out_relevant_columns(samples, gene_expression_measures_matrix);
-    let samples_len = samples.len();
-    Msamples.mean_axis(Axis(0))
+    Msamples.mean_axis(Axis(1))
 }
 
 fn variance_of_samples(
         samples: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>)
         -> Array1<f64> {
     let Msamples = filter_out_relevant_columns(samples, gene_expression_measures_matrix);
-    Msamples.var_axis(Axis(0), 1.)
+    Msamples.var_axis(Axis(1), 1.)
 }
 
-fn generate_zscores(UC: &Vec<usize>, CD: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Vec<f64> {
+fn generate_zscores(UC: &Vec<usize>,
+                    CD: &Vec<usize>,
+                    gene_expression_measures_matrix: &Array2<f64>)
+                    -> Array1<f64> {
     let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
     let MCD = mean_of_samples(&CD, &gene_expression_measures_matrix);
     let VUC = variance_of_samples(&UC, &gene_expression_measures_matrix);
-    let VCD = variance_of_samples(&UC, &gene_expression_measures_matrix);
+    let VCD = variance_of_samples(&CD, &gene_expression_measures_matrix);
     let nUC = UC.len();
     let nCD = CD.len();
-    let z_scores_num = MUC.iter().zip(MCD.iter()).map(
-        |(a, b)| a - b);
-    let z_scores_den = VUC.iter().zip(VCD.iter()).map(
-        |(&a, &b)| (a/nUC as f64 + b/nCD as f64).sqrt());
-    let z_scores: Vec<f64> = z_scores_num.zip(
-        z_scores_den).map(|(a, b)| a / b).collect();
+    let z_scores_num = MUC - MCD;
+    let z_scores_den = (VUC/nUC as f64 + VCD/nCD as f64).mapv(f64::sqrt);
+    let z_scores = z_scores_num / z_scores_den;
     z_scores
 }
 
@@ -117,15 +114,11 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     'linereading: for line in BufReader::new(file).lines() {
         let thisline = line?;
         let line_split: Vec<String> = thisline.split("=").map(|s| s.to_owned()).collect();
-        // println!("this line: {:?}", thisline);
         if thisline.starts_with("!dataset_table_begin") {
             within_dataset_table = true;
             within_headers = false;
             continue 'linereading;
         }
-        // let mut SID: Vec<String> = Vec::new();
-        // let mut SID: Vec<String> = Vec::new();
-        // let mut SID: Vec<usize> = Vec::new();
         if within_dataset_table && gene_expression_headers {
             // println!("wihting within_dataset_table && gene_expression_headers", );
             let sid_stp_indices = process_gene_expresssion_data_headers(&thisline, &SIF);
@@ -148,7 +141,6 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
             if thisline.starts_with("!subset_description") {
                 subset_description = line_split[1].trim().to_owned();
             };
-            // println!("subset description {:?}", subset_description);
             let subset_ids = if thisline.starts_with("!subset_sample_id") {
                 let subset_ids = line_split[1].split(",");
                 let subset_ids = subset_ids.map(|s| s.trim().to_owned());
@@ -156,44 +148,20 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
             } else {
                 Vec::new()
             };
-            // println!("subset ids {:?}", subset_ids);
             for k in subset_ids {
                 SIF.insert(k, subset_description.to_owned());
                 // println!("SIF: {:?}", SIF);
             }
         }
     }
-    // println!("gene expression len {}", gene_expression_measures_vec.len());
-    // panic!();
     let gene_expression_measures_matrix = Array::from_shape_vec((22283, 127), gene_expression_measures_vec).unwrap();
     let gene_expression_measures_matrix = convert_to_log_scale(&gene_expression_measures_matrix);
     let (UC, CD) = different_samples(&STP);
-    println!("{:?}", gene_expression_measures_matrix.shape());
-
-    let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("msamples: {:?}", MUC.len());
-    let MCD = mean_of_samples(&CD, &gene_expression_measures_matrix);
-    println!("mcd: {:?}", MCD.len());
-    let VUC = variance_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("VUC {:?}", VUC.len());
-    let VCD = variance_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("VUC {:?}", VCD.len());
-    let nUC = UC.len();
-    let nCD = CD.len();
-    // let z_scores_num = MUC.iter().zip(MCD.iter()).map(
-    //     |(a, b)| a - b);
-    let z_scores_num = MUC - MCD;        
-    let z_scores_den = VUC.iter().zip(VCD.iter()).map(
-        |(&a, &b)| (a/nUC as f64 + b/nCD as f64).sqrt());
-    let z_scores: Vec<f64> = z_scores_num.iter().zip(
-        z_scores_den).map(|(a, b)| a / b).collect();
-    println!("zscores {:?}", z_scores);
-
-
-    // let MUC: Vec<Array1<f64>> = UC.iter().map(|&c| gene_expression_measures_matrix.column(c)).collect();
-    // println!("MUC {:?}", MUC);
-    // let MUC_4 = gene_expression_measures_matrix.column(42);
-    // println!("MUC {:?}", );
+    let z_scores = generate_zscores(&UC, &CD, &gene_expression_measures_matrix);
+    let z_scores_mean = z_scores.sum() / z_scores.len() as f64;
+    let z_scores_std = z_scores.std_axis(Axis(0), 1.);
+    println!("z scores mean {:?}", z_scores_mean);
+    println!("z scores mean {:?}", z_scores_std);
 
     Ok(SIF)
 }
@@ -206,11 +174,12 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::{arr1, arr2};
 
     #[test]
     fn test_mean_of_samples() {
         let a = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
-        let res = arr1(&[1.5, 4.5]);
+        let res = arr1(&[2.5, 3.5]);
         let samples = vec![0, 1];
         assert_eq!(mean_of_samples(&samples, &a), res);
     }
