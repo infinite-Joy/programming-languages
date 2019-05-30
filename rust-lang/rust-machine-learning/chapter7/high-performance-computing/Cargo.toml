@@ -1,0 +1,9 @@
+[package]
+name = "high-performance-computing"
+version = "0.1.0"
+authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+# faster = "0.5.0"
+faster = { path = "../faster" }
