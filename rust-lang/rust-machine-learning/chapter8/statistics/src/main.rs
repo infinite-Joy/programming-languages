@@ -59,6 +59,7 @@ fn convert_to_log_scale(X: &Array2<f64>) -> Array2<f64> {
 }
 
 fn mean_of_samples(UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Vec<f64>{
+    let shape = UC.len();
     let mut cols = Vec::new();
     for &muc_columns in UC {
         let col = gene_expression_measures_matrix.column(muc_columns);
@@ -66,8 +67,23 @@ fn mean_of_samples(UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64
     }
     let MUC = stack(Axis(0), &cols[..]).unwrap();
     let MUC = Array::from_iter(MUC.iter());
-    let MUC = MUC.into_shape((22283, 26)).unwrap();
+    let MUC = MUC.into_shape((22283, shape)).unwrap();
     (0..26).map(|i| MUC.column(i).fold(0.0f64, |a, &b| a + b)).collect()
+}
+
+fn variance_of_samples(
+        UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>)
+        -> Array1<f64> {
+    let shape = UC.len();
+    let mut cols = Vec::new();
+    for &muc_columns in UC {
+        let col = gene_expression_measures_matrix.column(muc_columns);
+        cols.push(col);
+    }
+    let MUC = stack(Axis(0), &cols[..]).unwrap();
+    let MUC = Array::from_iter(MUC.iter());
+    let MUC = MUC.into_shape((22283, shape)).unwrap();
+    MUC.mapv(|&x| x).var_axis(Axis(0), 1.)
 }
 
 
@@ -140,21 +156,22 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     println!("{:?}", gene_expression_measures_matrix.shape());
 
     let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("{:?}", MUC);
+    println!("muc: {:?}", MUC);
+    let MCD = mean_of_samples(&CD, &gene_expression_measures_matrix);
+    println!("mcd: {:?}", MCD);
+    let VUC = variance_of_samples(&UC, &gene_expression_measures_matrix);
+    println!("VUC {:?}", VUC);
+    let VCD = variance_of_samples(&UC, &gene_expression_measures_matrix);
+    println!("VUC {:?}", VCD);
+    let nUC = UC.len();
+    let nCD = CD.len();
+
 
     // let MUC: Vec<Array1<f64>> = UC.iter().map(|&c| gene_expression_measures_matrix.column(c)).collect();
     // println!("MUC {:?}", MUC);
     // let MUC_4 = gene_expression_measures_matrix.column(42);
     // println!("MUC {:?}", );
 
-    let a = arr2(&[[1.,2.,3.], [4.,5.,6.]]);
-    let b = stack(Axis(0), &[a.column(1).view(), a.column(2).view()]).unwrap();
-    let b = Array::from_iter(b.iter());
-    println!("{:?}", b);
-    let b = b.into_shape((2, 2)).unwrap();
-    let b = b.t();
-    println!("{:?}", b);
-    println!("{:?}", b.column(0).fold(0.0f32, |a, &b| a + b));
     Ok(SIF)
 }
 
