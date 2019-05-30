@@ -58,32 +58,47 @@ fn convert_to_log_scale(X: &Array2<f64>) -> Array2<f64> {
     X.mapv(|x| x.ln()/two_log)
 }
 
-fn mean_of_samples(UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Vec<f64>{
-    let shape = UC.len();
+fn filter_out_relevant_columns(samples: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Array2<f64> {
+    let shape1 = samples.len();
+    let shape0 = gene_expression_measures_matrix.shape()[0];
     let mut cols = Vec::new();
-    for &muc_columns in UC {
-        let col = gene_expression_measures_matrix.column(muc_columns);
+    for &msamples_columns in samples {
+        let col = gene_expression_measures_matrix.column(msamples_columns);
         cols.push(col);
     }
-    let MUC = stack(Axis(0), &cols[..]).unwrap();
-    let MUC = Array::from_iter(MUC.iter());
-    let MUC = MUC.into_shape((22283, shape)).unwrap();
-    (0..26).map(|i| MUC.column(i).fold(0.0f64, |a, &b| a + b)).collect()
+    let Msamples = stack(Axis(0), &cols[..]).unwrap();
+    let Msamples = Array::from_iter(Msamples.iter());
+    let Msamples = Msamples.into_shape((shape0, shape1)).unwrap();
+    Msamples.mapv(|&x| x)
+}
+
+fn mean_of_samples(samples: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Array1<f64> {
+    let Msamples = filter_out_relevant_columns(samples, gene_expression_measures_matrix);
+    let samples_len = samples.len();
+    Msamples.mean_axis(Axis(0))
 }
 
 fn variance_of_samples(
-        UC: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>)
+        samples: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>)
         -> Array1<f64> {
-    let shape = UC.len();
-    let mut cols = Vec::new();
-    for &muc_columns in UC {
-        let col = gene_expression_measures_matrix.column(muc_columns);
-        cols.push(col);
-    }
-    let MUC = stack(Axis(0), &cols[..]).unwrap();
-    let MUC = Array::from_iter(MUC.iter());
-    let MUC = MUC.into_shape((22283, shape)).unwrap();
-    MUC.mapv(|&x| x).var_axis(Axis(0), 1.)
+    let Msamples = filter_out_relevant_columns(samples, gene_expression_measures_matrix);
+    Msamples.var_axis(Axis(0), 1.)
+}
+
+fn generate_zscores(UC: &Vec<usize>, CD: &Vec<usize>, gene_expression_measures_matrix: &Array2<f64>) -> Vec<f64> {
+    let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
+    let MCD = mean_of_samples(&CD, &gene_expression_measures_matrix);
+    let VUC = variance_of_samples(&UC, &gene_expression_measures_matrix);
+    let VCD = variance_of_samples(&UC, &gene_expression_measures_matrix);
+    let nUC = UC.len();
+    let nCD = CD.len();
+    let z_scores_num = MUC.iter().zip(MCD.iter()).map(
+        |(a, b)| a - b);
+    let z_scores_den = VUC.iter().zip(VCD.iter()).map(
+        |(&a, &b)| (a/nUC as f64 + b/nCD as f64).sqrt());
+    let z_scores: Vec<f64> = z_scores_num.zip(
+        z_scores_den).map(|(a, b)| a / b).collect();
+    z_scores
 }
 
 
@@ -156,15 +171,23 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
     println!("{:?}", gene_expression_measures_matrix.shape());
 
     let MUC = mean_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("muc: {:?}", MUC);
+    println!("msamples: {:?}", MUC.len());
     let MCD = mean_of_samples(&CD, &gene_expression_measures_matrix);
-    println!("mcd: {:?}", MCD);
+    println!("mcd: {:?}", MCD.len());
     let VUC = variance_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("VUC {:?}", VUC);
+    println!("VUC {:?}", VUC.len());
     let VCD = variance_of_samples(&UC, &gene_expression_measures_matrix);
-    println!("VUC {:?}", VCD);
+    println!("VUC {:?}", VCD.len());
     let nUC = UC.len();
     let nCD = CD.len();
+    // let z_scores_num = MUC.iter().zip(MCD.iter()).map(
+    //     |(a, b)| a - b);
+    let z_scores_num = MUC - MCD;        
+    let z_scores_den = VUC.iter().zip(VCD.iter()).map(
+        |(&a, &b)| (a/nUC as f64 + b/nCD as f64).sqrt());
+    let z_scores: Vec<f64> = z_scores_num.iter().zip(
+        z_scores_den).map(|(a, b)| a / b).collect();
+    println!("zscores {:?}", z_scores);
 
 
     // let MUC: Vec<Array1<f64>> = UC.iter().map(|&c| gene_expression_measures_matrix.column(c)).collect();
@@ -178,4 +201,17 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
 fn main() {
     let filename = Path::new("GDS1615_full.soft");
     process_file(&filename).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mean_of_samples() {
+        let a = arr2(&[[1., 2., 3.], [4., 5., 6.]]);
+        let res = arr1(&[1.5, 4.5]);
+        let samples = vec![0, 1];
+        assert_eq!(mean_of_samples(&samples, &a), res);
+    }
 }
