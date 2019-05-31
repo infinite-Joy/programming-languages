@@ -1,4 +1,5 @@
 use faster::*;
+use rblas::Dot;
 
 fn main() {
     let lots_of_3s = (&[-123.456f32; 128][..]).simd_iter(f32s(0.0))
@@ -22,5 +23,9 @@ fn main() {
         .simd_reduce(f32s(0.0), |a, v| a + v ).sum();
     println!("{:?}", reduced);
 
+    let x = vec![1.0, -2.0, 3.0, 4.0];
+    let y = [1.0, 1.0, 1.0, 1.0, 7.0];
 
+    let d = Dot::dot(&x, &y[..x.len()]);
+    println!("dot product {:?}", d);
 }

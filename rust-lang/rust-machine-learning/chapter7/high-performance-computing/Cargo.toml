@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 # faster = "0.5.0"
 faster = { path = "../faster" }
+rblas = "0.0.13"
