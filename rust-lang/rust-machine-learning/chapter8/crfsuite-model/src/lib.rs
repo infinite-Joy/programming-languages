@@ -82,7 +82,6 @@ fn get_data_no_y(path: &PathBuf) -> Result<Vec<NER_Only_X>, Box<dyn Error>> {
         let r: NER_Only_X = result?;
         data.push(r);
     }
-    println!("{:?}", data.len());
     Ok(data)
 }
 
@@ -94,7 +93,6 @@ fn get_data(path: &PathBuf) -> Result<Vec<NER>, Box<dyn Error>> {
         let r: NER = result?;
         data.push(r);
     }
-    println!("{:?}", data.len());
     data.shuffle(&mut thread_rng());
     Ok(data)
 }
