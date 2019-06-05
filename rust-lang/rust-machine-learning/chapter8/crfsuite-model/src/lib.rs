@@ -8,7 +8,6 @@ use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 
-use std::io;
 use std::vec::Vec;
 use std::error::Error;
 
@@ -23,7 +22,7 @@ use crfsuite::{Trainer, Algorithm, GraphicalModel};
 /// Represents a file that can be searched
 #[pyclass(module = "crfsuite_model")]
 pub struct CRFSuiteModel {
-    path: PathBuf,
+    model_name: String,
 }
 
 #[pymethods]
@@ -31,73 +30,71 @@ impl CRFSuiteModel {
     #[new]
     fn new(obj: &PyRawObject, path: String) {
         obj.init(CRFSuiteModel {
-            path: PathBuf::from(path),
+            model_name: path,
         });
     }
 
     /// Searches for the word, parallelized by rayon
-    fn fit(&self, py: Python<'_>, search: String) -> PyResult<String> {
-        let training_file = fs::read_to_string(&self.path)?;
-        // let data = get_data().unwrap();
-        // let (test_data, train_data) = split_test_train(&data, 0.2);
-        // let (xseq_train, yseq_train) = create_xseq_yseq(&train_data);
-        // let (xseq_test, yseq_test) = create_xseq_yseq(&test_data);
-        // crfmodel_training(xseq_train, yseq_train, "rustml.crfsuite").unwrap();
-        // let preds = model_prediction(xseq_test, "rustml.crfsuite").unwrap();
-        // check_accuracy(&preds, &yseq_test);
-
-        Ok("fit run".to_string())
+    fn fit(&self, py: Python<'_>, path: String) -> PyResult<String> {
+        let data_file = PathBuf::from(&path[..]);
+        let data = get_data(&data_file).unwrap();
+        let (test_data, train_data) = split_test_train(&data, 0.2);
+        let (xseq_train, yseq_train) = create_xseq_yseq(&train_data);
+        let (xseq_test, yseq_test) = create_xseq_yseq(&test_data);
+        crfmodel_training(xseq_train, yseq_train, self.model_name.as_ref()).unwrap();
+        let preds = model_prediction(xseq_test, self.model_name.as_ref()).unwrap();
+        check_accuracy(&preds, &yseq_test);
+        Ok("model fit done".to_string())
     }
 
     /// Searches for a word in a classic sequential fashion
-    fn predict(&self, needle: String) -> PyResult<String> {
-        let contents = fs::read_to_string(&self.path)?;
-
-        // let result = contents.lines().map(|line| count_line(line, &needle)).sum();
-
-        Ok("predict run".to_string())
+    fn predict(&self, predict_filename: String) -> PyResult<Vec<String>> {
+        let predict_data_file = PathBuf::from(predict_filename);
+        let data = get_data_no_y(&predict_data_file).unwrap();
+        let xseq_test = create_xseq_for_predict(&data[..]);
+        let preds = model_prediction(xseq_test, self.model_name.as_ref()).unwrap();
+        Ok(preds)
     }
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct NER {
-    // #[serde(rename = "")]
-    // id: String,
     lemma: String,
     #[serde(rename = "next-lemma")]
     next_lemma: String,
-    // next-next-lemma: String,
-    // next-next-pos: String,
-    // next-next-shape: String,
-    // next-next-word: String,
-    // next-pos: String,
-    // next-shape: String,
-    // next-word: String,
-    // pos: String,
-    // prev-iob: String,
-    // prev-lemma: String,
-    // prev-pos: String,
-    // prev-prev-iob: String,
-    // prev-prev-lemma: String,
-    // prev-prev-pos: String,
-    // prev-prev-shape: String,
-    // prev-prev-word: String,
-    // prev-shape: String,
-    // prev-word: String,
-    // sentence_idx: String,
-    // shape: String,
     word: String,
     tag: String
 }
 
-fn get_data() -> Result<Vec<NER>, Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_reader(io::stdin());
+#[derive(Debug, Deserialize, Clone)]
+pub struct NER_Only_X {
+    lemma: String,
+    #[serde(rename = "next-lemma")]
+    next_lemma: String,
+    word: String,
+}
+
+fn get_data_no_y(path: &PathBuf) -> Result<Vec<NER_Only_X>, Box<dyn Error>> {
+    let csvfile = fs::File::open(path)?;
+    let mut rdr = csv::Reader::from_reader(csvfile);
+    let mut data = Vec::new();
+    for result in rdr.deserialize() {
+        let r: NER_Only_X = result?;
+        data.push(r);
+    }
+    println!("{:?}", data.len());
+    Ok(data)
+}
+
+fn get_data(path: &PathBuf) -> Result<Vec<NER>, Box<dyn Error>> {
+    let csvfile = fs::File::open(path)?;
+    let mut rdr = csv::Reader::from_reader(csvfile);
     let mut data = Vec::new();
     for result in rdr.deserialize() {
         let r: NER = result?;
         data.push(r);
     }
-    // println!("{:?}", data.len());
+    println!("{:?}", data.len());
     data.shuffle(&mut thread_rng());
     Ok(data)
 }
@@ -121,6 +118,17 @@ fn create_xseq_yseq(data: &[NER])
         yseq.push(item.tag.clone());
     }
     (xseq, yseq)
+}
+
+fn create_xseq_for_predict(data: &[NER_Only_X]) 
+        -> Vec<Vec<Attribute>> {
+    let mut xseq = vec![];
+    for item in data {
+        let seq = vec![Attribute::new(item.lemma.clone(), 1.0),
+            Attribute::new(item.next_lemma.clone(), 0.5)]; // higher weightage for the mainword.
+        xseq.push(seq);
+    }
+    xseq
 }
 
 fn check_accuracy(preds: &[String], actual: &[String]) {
@@ -158,16 +166,6 @@ fn model_prediction(xtest: Vec<Vec<Attribute>>,
     let preds = tagger.tag(&xtest)?;
     Ok(preds)
 }
-
-// fn main() {
-//     let data = get_data().unwrap();
-//     let (test_data, train_data) = split_test_train(&data, 0.2);
-//     let (xseq_train, yseq_train) = create_xseq_yseq(&train_data);
-//     let (xseq_test, yseq_test) = create_xseq_yseq(&test_data);
-//     crfmodel_training(xseq_train, yseq_train, "rustml.crfsuite").unwrap();
-//     let preds = model_prediction(xseq_test, "rustml.crfsuite").unwrap();
-//     check_accuracy(&preds, &yseq_test);
-// }
 
 #[pymodule]
 fn crfsuite_model(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
