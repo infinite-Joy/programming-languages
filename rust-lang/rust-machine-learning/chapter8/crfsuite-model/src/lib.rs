@@ -4,7 +4,6 @@ extern crate serde_derive;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 
@@ -19,7 +18,6 @@ use rand::seq::SliceRandom;
 use crfsuite::{Model, Attribute, CrfError};
 use crfsuite::{Trainer, Algorithm, GraphicalModel};
 
-/// Represents a file that can be searched
 #[pyclass(module = "crfsuite_model")]
 pub struct CRFSuiteModel {
     model_name: String,
@@ -34,7 +32,6 @@ impl CRFSuiteModel {
         });
     }
 
-    /// Searches for the word, parallelized by rayon
     fn fit(&self, py: Python<'_>, path: String) -> PyResult<String> {
         let data_file = PathBuf::from(&path[..]);
         let data = get_data(&data_file).unwrap();
@@ -105,7 +102,7 @@ fn split_test_train(data: &[NER], test_size: f32) -> (Vec<NER>, Vec<NER>) {
     (test_data.to_vec(), train_data.to_vec())
 }
 
-fn create_xseq_yseq(data: &[NER]) 
+fn create_xseq_yseq(data: &[NER])
         -> (Vec<Vec<Attribute>>, Vec<String>) {
     let mut xseq = vec![];
     let mut yseq = vec![];
@@ -118,7 +115,7 @@ fn create_xseq_yseq(data: &[NER])
     (xseq, yseq)
 }
 
-fn create_xseq_for_predict(data: &[NER_Only_X]) 
+fn create_xseq_for_predict(data: &[NER_Only_X])
         -> Vec<Vec<Attribute>> {
     let mut xseq = vec![];
     for item in data {
@@ -137,7 +134,7 @@ fn check_accuracy(preds: &[String], actual: &[String]) {
             if predicted == actual && actual != "O" {
                 correct_hits += 1;
             }
-            hits += 1;    
+            hits += 1;
         }
     }
     println!("accuracy={} ({}/{} correct)",
@@ -146,7 +143,7 @@ fn check_accuracy(preds: &[String], actual: &[String]) {
         hits);
 }
 
-fn crfmodel_training(xseq: Vec<Vec<Attribute>>, 
+fn crfmodel_training(xseq: Vec<Vec<Attribute>>,
                      yseq: Vec<String>,
                      model_name: &str) -> Result<(), Box<CrfError>> {
     let mut trainer = Trainer::new(true);

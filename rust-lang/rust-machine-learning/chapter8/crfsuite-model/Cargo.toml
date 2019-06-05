@@ -1,6 +1,6 @@
 [package]
 name = "crfsuite-model"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Joydeep Bhattacharjee <joydeepubuntu@gmail.com>"]
 edition = "2018"
 
@@ -14,14 +14,9 @@ rand = "0.6.5"
 # machine learning
 crfsuite = "0.2.6"
 
-rayon = "1.0.3"
+# to call from python
 pyo3 = { git = "https://github.com/PyO3/pyo3.git", rev = "99fdafbb880c181f4bce16bbbac03888b3cf85c8", features = ["extension-module"]}
 
 [lib]
 name = "crfsuite_model"
 crate-type = ["cdylib"]
-
-# [dependencies.pyo3]
-# version = "0.7.0"
-# pyo3 = { git = "https://github.com/PyO3/pyo3.git", rev = "77f0974dafb8819b95437e74da581d7d9c41a1ad", features = ["extension-module"]}
-# features = ["extension-module"]
