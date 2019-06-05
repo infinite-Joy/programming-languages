@@ -26,7 +26,7 @@ fn process_gene_expresssion_data_headers(thisline: &String, SIF: &HashMap<String
 }
 
 /// Read the gene expression data as a list of lists, also get the gene identifiers
-fn process_gene_expresssion_data(thisline: &String, indices: &Vec<usize>, SIF: &HashMap<String, String>) -> (Vec<f64>, String) {
+fn process_gene_expresssion_data(thisline: &String, indices: &Vec<usize>) -> (Vec<f64>, String) {
     let gene_expression_measure_values: Vec<String> = thisline.split("\t")
         .map(|s| s.to_owned()).collect();
     let gene_expression_measures = indices.iter().map(
@@ -133,7 +133,7 @@ fn process_file(filename: &Path) -> io::Result<HashMap<String, String>> {
             if thisline.starts_with("!dataset_table_end") {
                 break 'linereading;
             }
-            let (gene_expression_measures, gene_identifiers) = process_gene_expresssion_data(&thisline, &indices, &SIF);
+            let (gene_expression_measures, gene_identifiers) = process_gene_expresssion_data(&thisline, &indices);
             gene_expression_measures_vec.extend(gene_expression_measures);
             gene_identifiers_vec.push(gene_identifiers);
         }
