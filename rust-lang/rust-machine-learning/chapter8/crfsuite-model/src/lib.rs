@@ -44,7 +44,6 @@ impl CRFSuiteModel {
         Ok("model fit done".to_string())
     }
 
-    /// Searches for a word in a classic sequential fashion
     fn predict(&self, predict_filename: String) -> PyResult<Vec<String>> {
         let predict_data_file = PathBuf::from(predict_filename);
         let data = get_data_no_y(&predict_data_file).unwrap();
