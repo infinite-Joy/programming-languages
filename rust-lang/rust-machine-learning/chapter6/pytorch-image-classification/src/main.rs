@@ -26,7 +26,10 @@ const HIDDEN_NODES: i64 = 128;
 
 const DATASET_FOLDER: &str = "dataset";
 
-fn visit_dir(dir: &Path, train_fn: &Fn(&DirEntry), test_fn: &Fn(&DirEntry)) -> io::Result<()> {
+fn visit_dir(dir: &Path,
+             train_fn: &dyn Fn(&DirEntry),
+             test_fn: &dyn Fn(&DirEntry))
+             -> io::Result<()> {
     if dir.is_dir() {
         let mut this_label = String::from("");
         for entry in fs::read_dir(dir)? {
