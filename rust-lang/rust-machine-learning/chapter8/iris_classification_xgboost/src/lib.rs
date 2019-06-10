@@ -41,6 +41,15 @@ use std::thread;
 use std::time::Duration;
 use std::sync::mpsc;
 
+fn flower_decoder(item: f32) -> String {
+    match item as i32 {
+        0 => "setosa".to_string(),
+        1 => "versicolor".to_string(),
+        2 => "virginica".to_string(),
+        l => panic!("Not able to parse the target. Some other target got passed. {:?}", l),
+    }
+}
+
 pub fn fit() -> Result<(), Box<dyn Error>> {
     let training_file = "data/iris.csv";
     let file = File::open(training_file).unwrap();
@@ -127,7 +136,9 @@ pub fn fit() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn predict(env: JNIEnv) {
+pub fn predict() -> Result<String, Box<dyn Error>> {
+    let booster = Booster::load("xgb.model").unwrap();
+    let predict_file = "data/predict.csv";
     let file = File::open(predict_file).unwrap();
     let mut rdr = csv::Reader::from_reader(file);
     let mut data = Vec::new();
@@ -145,24 +156,8 @@ pub fn predict(env: JNIEnv) {
     let mut dval = DMatrix::from_dense(&flower_x_val, val_size).unwrap();
     dval.set_labels(&flower_y_val).unwrap();
     
-    let preds = self.booster.predict(&dval).unwrap();
-    println!("preds: {:?}", preds);
-
-    // true values
-    let labels = dval.get_labels().unwrap();
-    println!("{:?}", labels);
-
-    // find the accuracy
-    let mut hits = 0;
-    let mut correct_hits = 0;
-    for (predicted, actual) in preds.iter().zip(labels.iter()) {
-        if predicted == actual {
-            correct_hits += 1;
-        }
-        hits += 1;
-    }
-    assert_eq!(hits, preds.len());
-    println!("accuracy={} ({}/{} correct)", correct_hits as f32 / hits as f32, correct_hits, preds.len());
+    let preds = booster.predict(&dval).unwrap();
+    Ok(flower_decoder(preds[0]))
 }
 
 #[no_mangle]
@@ -172,25 +167,15 @@ pub unsafe extern "system" fn Java_IrisClassificationXgboost_fit(_env: JNIEnv,
     fit().unwrap();
 }
 
-// #[no_mangle]
-// #[allow(non_snake_case)]
-// pub unsafe extern "system" fn Java_IrisClassificationXgboost_modelPredict(
-//     env: JNIEnv,
-//     _class: JClass,
-//     model_ptr: jlong,
-//     predict_file: String,
-// ){
-//     let model = &mut *(model_ptr as *mut Model);
-
-//     model.predict(env, predict_file);
-// }
-
-// #[no_mangle]
-// #[allow(non_snake_case)]
-// pub unsafe extern "system" fn Java_IrisClassificationXgboost_modelDestroy(
-//     _env: JNIEnv,
-//     _class: JClass,
-//     model_ptr: jlong
-// ){
-//     let _boxed_counter = Box::from_raw(model_ptr as *mut Model);
-// }
+#[no_mangle]
+#[allow(non_snake_case)]
+pub unsafe extern "system" fn Java_IrisClassificationXgboost_predict(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    // Then we have to create a new java string to return. Again, more info
+    // in the `strings` module.
+    let output = env.new_string(predict().unwrap())
+        .expect("Couldn't create java string!");
+    output.into_inner()
+}

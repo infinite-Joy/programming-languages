@@ -12,6 +12,7 @@ class IrisClassificationXgboost {
     // The rest is just regular ol' Java!
     public static void main(String[] args) {
         IrisClassificationXgboost.fit();
-        IrisClassificationXgboost.predict();
+        String predictions = IrisClassificationXgboost.predict();
+        System.out.println(predictions);
     }
 }
