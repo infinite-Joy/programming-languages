@@ -137,6 +137,7 @@ pub fn fit() -> Result<(), Box<dyn Error>> {
 }
 
 pub fn predict() -> Result<String, Box<dyn Error>> {
+    println!("Loading model");
     let booster = Booster::load("xgb.model").unwrap();
     let predict_file = "data/predict.csv";
     let file = File::open(predict_file).unwrap();
