@@ -3,14 +3,10 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-use std::io;
-use std::process;
 use std::vec::Vec;
 use std::error::Error;
 
 use csv;
-use std::env;
-use std::ffi::OsString;
 use std::fs::File;
 use rand;
 use rand::thread_rng;
@@ -30,16 +26,12 @@ use jni::JNIEnv;
 // These objects are what you should use as arguments to your native function.
 // They carry extra lifetime information to prevent them escaping this context
 // and getting used after being GC'd.
-use jni::objects::{GlobalRef, JClass, JObject, JString};
+use jni::objects::JClass;
 
 // This is just a pointer. We'll be returning it from our function.
 // We can't return one of the objects with lifetime information because the
 // lifetime checker won't let us.
-use jni::sys::{jint, jlong, jstring, jbyteArray};
-
-use std::thread;
-use std::time::Duration;
-use std::sync::mpsc;
+use jni::sys::jstring;
 
 fn flower_decoder(item: f32) -> String {
     match item as i32 {
