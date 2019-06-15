@@ -28,7 +28,7 @@ fn flower_decoder(item: f32) -> String {
     }
 }
 
-fn predict(data: String) -> Result<String, Box<dyn Error>> {
+fn predict(data: &String) -> Result<String, Box<dyn Error>> {
     println!("Loading model");
     let booster = Booster::load("xgb.model")?;
     let mut rdr = ReaderBuilder::new()
@@ -70,22 +70,27 @@ fn my_handler(event: CustomEvent, ctx: Context) -> Result<String, HandlerError> 
         error!("Empty name in request {}", ctx.aws_request_id);
         bail!("Empty name");
     }
-    let mut map = collections::HashMap::<String, u32>::new();
-    let re = Regex::new(r"\w+").unwrap();
-    for caps in re.captures_iter(&event.string) {
-        if let Some(cap) = caps.get(0) {
-            let word = cap.as_str();
-            match map.entry(word.to_string()) {
-                Occupied(mut view) => { *view.get_mut() += 1; }
-                Vacant(view) => { view.insert(1); }
-            }
-        }
-    }
+    // let mut map = collections::HashMap::<String, u32>::new();
+    // let re = Regex::new(r"\w+").unwrap();
+    // for caps in re.captures_iter(&event.string) {
+    //     if let Some(cap) = caps.get(0) {
+    //         let word = cap.as_str();
+    //         match map.entry(word.to_string()) {
+    //             Occupied(mut view) => { *view.get_mut() += 1; }
+    //             Vacant(view) => { view.insert(1); }
+    //         }
+    //     }
+    // }
+    let prediction = match predict(&event.string) {
+        Ok(p) => p,
+        Err(_) => "Not able to get the prediction".to_string(),
+    };
 
     // Serialise to a json string
-    let j = serde_json::to_string(&map).unwrap();
+    // let j = serde_json::to_string(&map).unwrap();
 
-    Ok(j)
+    Ok(prediction)
+    // Ok(j)
 }
 
 
@@ -110,7 +115,7 @@ mod tests {
     #[test]
     fn test_predict() {
         let data = "sepal_length,sepal_width,petal_length,petal_width,species\n5.1,3.5,1.4,0.2,setosa\n";
-        let res = predict(data.to_string());
+        let res = predict(&data.to_string());
         assert_eq!(res.unwrap(), "setosa".to_string());
     }
 }
