@@ -71,7 +71,7 @@ pub struct Flower {
 
 impl Flower {
     pub fn into_feature_vector(&self) -> Vec<f32> {
-        vec![self.sepal_length, self.sepal_width, self.sepal_length, self.petal_width]
+        vec![self.sepal_length, self.sepal_width, self.petal_length, self.petal_width]
     }
 
     pub fn into_labels(&self) -> f32 {
