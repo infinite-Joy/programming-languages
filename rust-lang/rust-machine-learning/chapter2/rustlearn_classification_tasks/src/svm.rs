@@ -15,7 +15,7 @@ use ml_utils;
 use ml_utils::sup_metrics::{accuracy, logloss_score};
 use ml_utils::datasets::Flower;
 
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();

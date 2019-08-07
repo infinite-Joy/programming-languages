@@ -15,7 +15,7 @@ use ml_utils;
 use ml_utils::sup_metrics::{accuracy, logloss_score};
 use ml_utils::datasets::Flower;
 
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     // Get all the data
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
@@ -68,9 +68,9 @@ pub fn run() -> Result<(), Box<Error>> {
 
     let prediction = model.predict(&flower_x_test).unwrap();
     let acc1 = accuracy_score(&flower_y_test, &prediction);
-    let acc2 = accuracy(&flower_y_test.data(), &prediction.data());
+    // let acc2 = accuracy(flower_y_test.data()[..], prediction.data()[..]);
     println!("Logistic Regression: accuracy: {:?}", acc1);
-    println!("Logistic Regression: accuracy: {:?}", acc2);
+    // println!("Logistic Regression: accuracy: {:?}", acc2);
 
     Ok(())
 }

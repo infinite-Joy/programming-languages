@@ -37,6 +37,7 @@ mod graph_variables;
 mod linear_regression;
 mod conv_nets;
 mod linear_regression_from_model;
+mod conv_nets_maxpooling;
 
 
 #[cfg_attr(feature="examples_system_alloc", global_allocator)]
