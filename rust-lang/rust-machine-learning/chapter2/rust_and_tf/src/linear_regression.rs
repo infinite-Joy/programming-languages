@@ -45,7 +45,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let boston_y_test: Vec<f64> = test_data.iter().map(|r| r.into_targets()).collect();
 
     // println!("{:?}", boston_y_train.len());
-    println!("{:?}", boston_x_train.len());
+    // println!("{:?}", boston_x_train.len());
 
     // Define graph.
     let mut graph = Graph::new();
@@ -123,8 +123,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let preds_token = args.request_fetch(&predictions, 0);
     session.run(&mut args)?;
     let preds_token_res: Tensor<f64> = args.fetch::<f64>(preds_token)?;
-    println!("Now the preds", );
-    println!("{:?}", &preds_token_res[..]);
+    // println!("Now the preds", );
+    // println!("{:?}", &preds_token_res[..]);
     println!("r-squared error score: {:?}", r_squared_score(&preds_token_res.to_vec(), &boston_y_test));
 
     Ok(())
