@@ -18,7 +18,7 @@ fn main() {
         Some(args[1].as_str())
     };
     let res = match model {
-        None => {println!("nothing", ); Ok(())},
+        None => {println!("Run cargo run [nn|linear sdg] to get outputs", ); Ok(())},
         Some("nn") => simple_nn::run(),
         Some(_) => linear_with_sgd::run(),
     };

@@ -63,10 +63,10 @@ pub fn run() -> Result<(), Box<Error>> {
     // differentiate the features and the labels.
     // torch needs vectors in f64
     let flower_x_train: Vec<f64> = train_data.iter().flat_map(|r| r.into_feature_vector()).map(|x| x as f64).collect();
-    let flower_y_train: Vec<f64> = train_data.iter().map(|r| r.into_targets()).map(|x| x as f64).collect();
+    let flower_y_train: Vec<f64> = train_data.iter().map(|r| r.into_labels()).map(|x| x as f64).collect();
 
     let flower_x_test: Vec<f64> = test_data.iter().flat_map(|r| r.into_feature_vector()).map(|x| x as f64).collect();
-    let flower_y_test: Vec<f64> = test_data.iter().map(|r| r.into_targets()).map(|x| x as f64).collect();
+    let flower_y_test: Vec<f64> = test_data.iter().map(|r| r.into_labels()).map(|x| x as f64).collect();
 
     let flower_x_train = Tensor::float_vec(flower_x_train.as_slice());
     let flower_y_train = Tensor::float_vec(flower_y_train.as_slice()).to_kind(Kind::Int64);
