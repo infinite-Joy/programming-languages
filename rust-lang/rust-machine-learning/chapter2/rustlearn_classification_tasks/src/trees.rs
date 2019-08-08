@@ -54,14 +54,25 @@ pub fn run() -> Result<(), Box<Error>> {
 
     let flower_y_test = Array::from(flower_y_test);
 
+    // create a decision tree model
+    let mut decision_tree_model = decision_tree::Hyperparameters::new(flower_x_train.cols())
+        .one_vs_rest();
+    decision_tree_model.fit(&flower_x_train, &flower_y_train).unwrap();
+
+    let prediction = decision_tree_model.predict(&flower_x_test).unwrap();
+    let acc = accuracy_score(&flower_y_test, &prediction);
+    println!("DecisionTree model accuracy: {:?}", acc);
+
+    
+
     // create a random forest model
     let mut tree_params = decision_tree::Hyperparameters::new(flower_x_train.cols());
     tree_params.min_samples_split(10)
         .max_features(4);
 
-    let mut model = randomforest::new(tree_params, 10).one_vs_rest();
+    let mut random_forest_model = randomforest::new(tree_params, 10).one_vs_rest();
 
-    model.fit(&flower_x_train, &flower_y_train).unwrap();
+    random_forest_model.fit(&flower_x_train, &flower_y_train).unwrap();
 
     // Optionally serialize and deserialize the model
 
@@ -69,7 +80,7 @@ pub fn run() -> Result<(), Box<Error>> {
     //                                               bincode::SizeLimit::Infinite).unwrap();
     // let decoded: OneVsRestWrapper<RandomForest> = bincode::rustc_serialize::decode(&encoded).unwrap();
 
-    let prediction = model.predict(&flower_x_test).unwrap();
+    let prediction = random_forest_model.predict(&flower_x_test).unwrap();
     let acc = accuracy_score(&flower_y_test, &prediction);
     println!("Random Forest: accuracy: {:?}", acc);
 
