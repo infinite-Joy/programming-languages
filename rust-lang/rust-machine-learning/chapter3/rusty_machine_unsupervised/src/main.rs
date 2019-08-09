@@ -134,9 +134,7 @@ fn main() -> Result<(), Box<Error>> {
     // let flower_y_test = Matrix::new(test_size, 3, flower_y_test);
     // let flower_y_test = flower_y_test.chunks(3).collect();
 
-    const features_num: usize = 4;
     const clusters: usize = 3;
-
     // Create a Kmeans model with 3 clusters
     let model_type = "Kmeans";
     let mut model = KMeansClassifier::new(clusters);
@@ -162,7 +160,7 @@ fn main() -> Result<(), Box<Error>> {
     let mut model = KMeansClassifier::new_specified(3, 100, Forgy); // can use the RandomPartition
 
     //Train the model
-    println!("Training the {} model", model_type);
+    println!("Training the kmeans forgy model model");
     model.train(&flower_x_train)?;
 
     let centroids = model.centroids().as_ref().unwrap();
@@ -172,8 +170,7 @@ fn main() -> Result<(), Box<Error>> {
     println!("Predicting the samples...");
     let classes = model.predict(&flower_x_test).unwrap();
     println!("number of classes from kmeans: {:?}", classes.data().len());
-    // println!("{:?}", classes.data().len());
-    // println!("{:?}", flower_y_test);
+    println!("{:?}", classes.data().len());
     let repeat_string = repeat("*********").take(10).collect::<String>();
     println!("{}", repeat_string);
     println!("");
@@ -190,8 +187,8 @@ fn main() -> Result<(), Box<Error>> {
     model.train(&flower_x_train)?;
 
     // Print the means and covariances of the GMM
-    println!("{:?}", model.means());
-    println!("{:?}", model.covariances());
+    println!("model means: {:?}", model.means());
+    println!("model covariances: {:?}", model.covariances());
 
     // Predict the classes and partition into
     println!("Predicting the samples...");
@@ -199,14 +196,14 @@ fn main() -> Result<(), Box<Error>> {
     println!("number of classes from GMM: {:?}", classes.data().len());
     // println!("{:?}", classes.data().len());
     // println!("{:?}", flower_y_test);
-    println!("{:?}", classes);
+    println!("gmm classes: {:?}", classes);
 
     // Probabilities that each point comes from each Gaussian.
     println!("number of Probablities from GMM: {:?}", classes.data().len());
 
     let predicted_clusters = flower_labels_clusters_gmm(classes.data());
     println!("predicted clusters from gmm: {:?}", predicted_clusters);
-    println!("{:?}", flower_y_test_clus);
+    // println!("{:?}", flower_y_test_clus);
     println!("rand index: {:?}", rand_index(&predicted_clusters, &flower_y_test_clus));
     println!("jaccard index: {:?}", jaccard_index(&predicted_clusters, &flower_y_test_clus));
 
