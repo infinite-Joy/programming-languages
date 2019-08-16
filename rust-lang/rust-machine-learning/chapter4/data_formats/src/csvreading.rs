@@ -20,13 +20,13 @@ struct IrisRecord {
 
 /// Returns the first positional argument sent to this process. If there are no
 /// positional arguments, then this returns an error.
-fn get_first_arg() -> Result<OsString, Box<Error>> {
+fn get_first_arg() -> Result<OsString, Box<dyn Error>> {
     match env::args_os().nth(2) {
         None => Err(From::from("expected 2 arguments, but got none")),
         Some(file_path) => Ok(file_path),
     }
 }
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     let file_path = get_first_arg()?;
     let file = File::open(file_path)?;
     let mut rdr = ReaderBuilder::new()

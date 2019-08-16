@@ -1,11 +1,9 @@
 use std::fs::File;
-use std::io::BufReader;
 use std::result::Result;
 use std::error::Error;
 
 use serde_xml_rs;
 use serde_xml_rs::from_reader;
-use serde_xml_rs::Deserializer;
 
 #[derive(Deserialize, Debug)]
 struct Project {
@@ -49,8 +47,8 @@ struct Library {
     version: String,
 }
 
-pub fn run() -> Result<(), Box<Error>> {
-    let file = File::open("data/sample_1.xml").unwrap();
+pub fn run() -> Result<(), Box<dyn Error>> {
+    let file = File::open("data/sample_2.xml").unwrap();
     let project: Project = from_reader(file).unwrap();
     // println!("{:#?}", project.libraries[0].library[0]);
     println!("{:#?}", project);
