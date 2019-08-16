@@ -16,13 +16,13 @@ struct Prize {
     category: String,
     #[serde(default)]
     overallMotivation: Option<String>,
-    laureates: Vec<NobelLaureates>,
+    laureates: Vec<NobelLaureate>,
     #[serde(deserialize_with = "de_u16_from_str")]
     year: u16,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct NobelLaureates {
+struct NobelLaureate {
     share: String,
     #[serde(default)]
     motivation: Option<String>,
