@@ -50,7 +50,7 @@ struct Library {
 pub fn run() -> Result<(), Box<dyn Error>> {
     let file = File::open("data/sample_2.xml").unwrap();
     let project: Project = from_reader(file).unwrap();
-    // println!("{:#?}", project.libraries[0].library[0]);
+    println!("{:#?}", project.libraries[0].library[0]);
     println!("{:#?}", project);
     Ok(())
 }
