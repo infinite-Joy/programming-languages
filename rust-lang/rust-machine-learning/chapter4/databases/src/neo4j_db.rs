@@ -1,11 +1,10 @@
 use std::error::Error;
 
 use rusted_cypher;
-// use rusted_cypher::{GraphClient, Statement, GraphError};
 use rusted_cypher::{GraphClient, Statement};
 use std::iter::repeat;
 
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     // let graph = GraphClient::connect(
     //     "http://neo4j:neo4j@localhost:7474/db/data");
     let graph = GraphClient::connect(
