@@ -1,3 +1,6 @@
+/// Module for showing pytorch image classification
+/// 
+/// To run this can use `cargo run`
 extern crate tch;
 
 use std::process::exit;
@@ -13,8 +16,10 @@ use failure;
 
 // for the CNN
 const BATCH_SIZE: i64 = 16;
+// const LABELS: i64 = 10;
 const LABELS: i64 = 102;
-const EPOCHS: i64 = 100;
+// const LABELS: i64 = 6;
+const EPOCHS: i64 = 2;
 
 const W: i64 = 224;
 const H: i64 = 224;
@@ -26,6 +31,14 @@ const HIDDEN_NODES: i64 = 128;
 
 const DATASET_FOLDER: &str = "dataset";
 
+/// Visit directory, identify the train and test files
+/// and run the train_fn on the training files
+/// and the test function on the test files.
+/// 
+/// # Arguments
+/// * `dir` - The directory that this function should run on.
+/// * `train_fn` - Training function for the training files.
+/// * `test_fn` - Testing function for the test files.
 fn visit_dir(dir: &Path,
              train_fn: &dyn Fn(&DirEntry),
              test_fn: &dyn Fn(&DirEntry))
@@ -54,10 +67,19 @@ fn visit_dir(dir: &Path,
     Ok(())
 }
 
+/// A simple print statement to be utilised for testing reasons mostly.
 fn print_directory(dir: &Path) {
     println!("{:?}", dir);
 }
 
+/// move files from source to destination
+/// 
+/// # Arguments
+/// * `from_path`: the directory that needs to be copied
+/// * `to_path`: the target directory where the file contents should be placed.
+/// 
+/// # Returns
+/// Result if the copy is successful else raises error
 fn move_file(from_path: &DirEntry, to_path: &Path) -> io::Result<()> {
     let root_folder = Path::new(DATASET_FOLDER);
     let second_order = root_folder.join(to_path);
@@ -75,10 +97,14 @@ fn move_file(from_path: &DirEntry, to_path: &Path) -> io::Result<()> {
 
 // image dataset: http://www.vision.caltech.edu/Image_Datasets/Caltech101/
 
+/// A convolutional net is represented here.
 #[derive(Debug)]
 struct CnnNet {
+    /// the first convolutional layer
     conv1: nn::Conv2D,
+    /// the second convolutional layer
     conv2: nn::Conv2D,
+    /// a linear layer to flatten the previous convolution
     fc1: nn::Linear,
     fc2: nn::Linear,
 }
@@ -102,26 +128,27 @@ impl CnnNet {
 // impl nn::ModuleT for CnnNet {
 //    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
 //        let xs_prime = xs.view(&[-1, C, H, W]);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.apply(&self.conv1);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.max_pool2d_default(2);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.apply(&self.conv2);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.max_pool2d_default(2);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.view(&[BATCH_SIZE, -1]);
 //     //    let xs_prime = xs_prime.view(&[-1, 1024]);
 //        println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.apply(&self.fc1);
 //        println!("{:?}", xs_prime.size());
+//        println!("%%%%%%%%%%%", );
 //        let mut xs_prime = xs_prime.relu();
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.dropout_(0.5, train);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        let xs_prime = xs_prime.apply(&self.fc2);
-//        println!("{:?}", xs_prime.size());
+//     //    println!("{:?}", xs_prime.size());
 //        xs_prime
 //    }
 // }
@@ -185,8 +212,9 @@ fn main() -> failure::Fallible<()> {
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let optimizer = nn::Adam::default().build(&vs, 1e-4)?;
     let net = CnnNet::new(&vs.root());
-    for epoch in 1..EPOCHS {
+    for epoch in 1..EPOCHS+1 {
         for (bimages, blabels) in image_dataset.train_iter(BATCH_SIZE).shuffle().to_device(vs.device()) {
+            // println!("images and labels size {:?}, {:?}", bimages.size(), blabels.size());
             // let outputs = net
             //     .forward_t(&bimages, true);
             // println!("outputs done {:?}", outputs.size());
@@ -197,6 +225,9 @@ fn main() -> failure::Fallible<()> {
                 .cross_entropy_for_logits(&blabels);
             optimizer.backward_step(&loss);
         }
+        // println!("training done");
+        // println!("test size {:?}", image_dataset.test_images.size());
+        // println!("test size {:?}", image_dataset.test_labels.size());
         let test_accuracy =
             net.batch_accuracy_for_logits(&image_dataset.test_images,
                                           &image_dataset.test_labels,
