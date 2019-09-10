@@ -6,4 +6,3 @@ edition = "2018"
 
 [dependencies]
 ndarray = "0.12.1"
-ndarray-stats = "0.2.0"

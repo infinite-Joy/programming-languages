@@ -125,6 +125,21 @@ impl CnnNet {
     }
 }
 
+impl nn::ModuleT for CnnNet {
+    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
+        xs.view(&[-1, C, H, W])
+            .apply(&self.conv1)
+            .max_pool2d_default(2)
+            .apply(&self.conv2)
+            .max_pool2d_default(2)
+            .view(&[BATCH_SIZE, -1])
+            .apply(&self.fc1)
+            .relu()
+            .dropout_(0.5, train)
+            .apply(&self.fc2)
+    }
+}
+
 // impl nn::ModuleT for CnnNet {
 //    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
 //        let xs_prime = xs.view(&[-1, C, H, W]);
@@ -152,21 +167,6 @@ impl CnnNet {
 //        xs_prime
 //    }
 // }
-
-impl nn::ModuleT for CnnNet {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.view(&[-1, C, H, W])
-            .apply(&self.conv1)
-            .max_pool2d_default(2)
-            .apply(&self.conv2)
-            .max_pool2d_default(2)
-            .view(&[BATCH_SIZE, -1])
-            .apply(&self.fc1)
-            .relu()
-            .dropout_(0.5, train)
-            .apply(&self.fc2)
-    }
-}
 
 fn learning_rate(epoch: i64) -> f64 {
     if epoch < 10 {
