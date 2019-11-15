@@ -1,6 +1,6 @@
 use faster::*;
 use rblas::Dot;
-use lapack::*;
+// use lapack::*;
 
 fn main() {
     let lots_of_3s = (&[-123.456f32; 128][..]).simd_iter(f32s(0.0))
@@ -30,20 +30,20 @@ fn main() {
     let d = Dot::dot(&x, &y[..x.len()]);
     println!("dot product {:?}", d);
 
-    let n = 3;
-    let mut a = vec![3.0, 1.0, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 3.0];
-    let mut w = vec![0.0; n as usize];
-    let mut work = vec![0.0; 4 * n as usize];
-    let lwork = 4 * n;
-    let mut info = 0;
+    // let n = 3;
+    // let mut a = vec![3.0, 1.0, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 3.0];
+    // let mut w = vec![0.0; n as usize];
+    // let mut work = vec![0.0; 4 * n as usize];
+    // let lwork = 4 * n;
+    // let mut info = 0;
 
-    unsafe {
-        dsyev(b'V', b'U', n, &mut a, n, &mut w, &mut work, lwork, &mut info);
-    }
+    // unsafe {
+    //     dsyev(b'V', b'U', n, &mut a, n, &mut w, &mut work, lwork, &mut info);
+    // }
 
-    assert!(info == 0);
-    for (one, another) in w.iter().zip(&[2.0, 2.0, 5.0]) {
-        assert!((one - another).abs() < 1e-14);
-    }
+    // assert!(info == 0);
+    // for (one, another) in w.iter().zip(&[2.0, 2.0, 5.0]) {
+    //     assert!((one - another).abs() < 1e-14);
+    // }
 
 }

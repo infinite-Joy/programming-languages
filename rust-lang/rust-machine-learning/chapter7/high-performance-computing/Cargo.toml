@@ -9,4 +9,4 @@ edition = "2018"
 faster = { path = "../faster" }
 rblas = "0.0.13"
 # lapack = "0.16.0"
-lapack = { git = "https://github.com/blas-lapack-rs/lapack.git", rev = "67554e6"}
+# lapack = { git = "https://github.com/blas-lapack-rs/lapack.git", rev = "67554e6"}
