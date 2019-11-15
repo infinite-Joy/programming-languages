@@ -1,7 +1,17 @@
 number_of_elements = int(input())
-elements = [int(x) for x in input().split()]
+elements = [float(x) for x in input().split()]
+frequencies = [int(x) for x in input().split()]
 
-elements = sorted(elements)
+def find_expanded_elements(elements, frequencies):
+    final_elements = []
+    for e, f in zip(elements, frequencies):
+        expandeds = [e]*f
+        final_elements = final_elements + expandeds
+    return final_elements
+
+expanded_elements = find_expanded_elements(elements, frequencies)
+elements = sorted(expanded_elements)
+number_of_elements = len(elements)
 
 def find_median(values):
     values = sorted(values)
@@ -28,7 +38,5 @@ def lower_upper_halves(elements, number_of_elements):
 
 
 q1, q2, q3 = lower_upper_halves(elements, number_of_elements)
-print(q1)
-print(q2)
-print(q3)
+print(float(q3 - q1))
 
