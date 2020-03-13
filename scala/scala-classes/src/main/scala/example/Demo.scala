@@ -19,7 +19,7 @@ object Demo {
     println(user1.toString)
     var user2 = new User()
     println(user2.toString)
-    var user3 = new User("Joydeep")
+    var user3 = new User("ABCD")
     println(user3.toString)
 
   }
