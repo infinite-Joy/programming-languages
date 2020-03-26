@@ -16,13 +16,13 @@ struct Prize {
     category: String,
     #[serde(default)]
     overallMotivation: Option<String>,
-    laureates: Vec<NobelLaureates>,
+    laureates: Vec<NobelLaureate>,
     #[serde(deserialize_with = "de_u16_from_str")]
     year: u16,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct NobelLaureates {
+struct NobelLaureate {
     share: String,
     #[serde(default)]
     motivation: Option<String>,
@@ -32,14 +32,14 @@ struct NobelLaureates {
     firstname: String,
 }
 
-fn de_u16_from_str<'de, D>(deserializer: D) -> Result<u16, D::Error>
-    where D: Deserializer<'de>
+fn de_u16_from_str<'a, D>(deserializer: D) -> Result<u16, D::Error>
+    where D: Deserializer<'a>
 {
     let s = String::deserialize(deserializer)?;
     u16::from_str(&s).map_err(de::Error::custom)
 }
 
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     let the_file = r#"{
         "FirstName": "John",
         "LastName": "Doe",

@@ -45,7 +45,7 @@ pub struct NER {
     tag: String
 }
 
-fn get_data() -> Result<Vec<NER>, Box<Error>> {
+fn get_data() -> Result<Vec<NER>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
     for result in rdr.deserialize() {

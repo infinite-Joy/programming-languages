@@ -66,7 +66,7 @@ impl SpookyAuthor {
     }
 }
 
-fn push_training_data_to_file(train_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<Error>> {
+fn push_training_data_to_file(train_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<dyn Error>> {
     let mut f = File::create(filename)?;
     for item in train_data {
         writeln!(f, "{} {}", item.into_labels(), item.into_tokens())?;
@@ -74,7 +74,7 @@ fn push_training_data_to_file(train_data: &[SpookyAuthor], filename: &str) -> Re
     Ok(())
 }
 
-fn push_test_data_to_file(test_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<Error>> {
+fn push_test_data_to_file(test_data: &[SpookyAuthor], filename: &str) -> Result<(), Box<dyn Error>> {
     let mut f = File::create(filename)?;
     for item in test_data {
         writeln!(f, "{}", item.into_tokens())?;
@@ -82,7 +82,7 @@ fn push_test_data_to_file(test_data: &[SpookyAuthor], filename: &str) -> Result<
     Ok(())
 }
 
-fn main() -> Result<(), Box<Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(io::stdin());
     let mut data = Vec::new();
     for result in rdr.deserialize() {

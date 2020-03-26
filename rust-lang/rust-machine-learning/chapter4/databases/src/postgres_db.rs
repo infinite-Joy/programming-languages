@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use postgres;
-use postgres::{Connection, TlsMode, Error};
+use postgres::{Connection, TlsMode};
 
 #[derive(Debug)]
 struct Weather {
@@ -11,7 +11,7 @@ struct Weather {
     warmest: f64,
     coldest: f64
 }
-pub fn run() -> Result<(), Box<Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     let conn = Connection::connect("postgresql://postgres:postgres@localhost:5432/postgres",
                                     TlsMode::None)?;
 
