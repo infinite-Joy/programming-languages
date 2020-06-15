@@ -55,8 +55,12 @@ print(check_palindrome('abc'))
 
 from collections import defaultdict
 
-def check_discrepency(val, curr_max, lifeguard):
-    if val<=curr_max:
+def check_discrepency(val, curr_max, lifeguard, last):
+    if val < curr_max:
+        if last:
+            return False, False
+        return lifeguard, True
+    if val==curr_max:
         return lifeguard, True
     elif lifeguard and val == curr_max + 1:
         return False, True
@@ -65,10 +69,10 @@ def check_discrepency(val, curr_max, lifeguard):
     else:
         return False, False
 
-def is_invalid(current_counts, curr_max):
+def is_invalid(current_counts, curr_max, last=False):
     lifeguard = True
     for k, v in current_counts.items():
-        lifeguard, ok = check_discrepency(v, curr_max, lifeguard)
+        lifeguard, ok = check_discrepency(v, curr_max, lifeguard, last)
         #print(lifeguard, ok, k, v, curr_max, lifeguard)
         if ok is False:
             return True
@@ -80,7 +84,10 @@ def build_counter(N, S, current_counts=None, curr_max=0):
     if current_counts is None:
         current_counts = defaultdict(int)
     if len(S) == 0:
-        return "YES"
+        if is_invalid(current_counts, curr_max, last=True):
+            return "NO"
+        else:
+            return "YES"
     letter = S[0]
     current_counts[letter] += 1
     curr_max = int(N / len(current_counts))
@@ -100,5 +107,7 @@ print(is_valid("abcc"))
 print(is_valid("abccc"))
 print(is_valid("aabbcd"))
 print(is_valid("abcdefghhgfedecba"))
+print(is_valid("aabbc"))
+print(is_valid("abbccc"))
 
 
