@@ -4,12 +4,13 @@ from collections import deque
 
 class Graph:
 
-    def __init__(self, root):
+    def __init__(self, root, directed=None):
         # we will create an adjaceency list for the graph
         self._graph = defaultdict(list)
         self._root = root
         self._number_of_vertices = 0
         self.parents = None
+        self.directed = directed
 
     def add_edge(self, u, *vertices):
         if self._root is None:
@@ -23,47 +24,36 @@ class Graph:
             self.parents = parents
             return s
 
-    #def bfs(self, s):
-    #    # recursion is not a good choice for the breadth first search
-    #    queue = deque([self._root])
-    #    processed = defaultdict(bool)
-    #    discovered = defaultdict(bool)
-    #    parent = defaultdict(None)
-    #    discovered[self._root] = True
-    #    while queue:
-    #        curr_node = queue.popleft()
-    #        output = self.process_vertex(curr_node, s, parent)
-    #        if output:
-    #            yield output
-    #            return
-    #        yield curr_node
-    #        if parent.get(curr_node):
-    #            processed[str(parent[curr_node])+str(curr_node)] = True
-    #        else:
-    #            processed[str(curr_node)] = True
-    #        for child in self._graph[curr_node]:
-    #            if processed[str(curr_node)+str(child)] is False:
-    #                output = self.process_vertex(curr_node, s, parent)
-    #                if output:
-    #                    yield output
-    #                    return
-    #            if discovered[child] is False:
-    #                queue.append(child)
-    #                discovered[child] = True
-    #                parent[child] = curr_node
-
     def bfs(self, s):
         queue = deque([self._root])
+        processed = defaultdict(bool)
         visited = {self._root: True}
+        parent = {self._root: None}
         while queue:
             v = queue.popleft()
+            self.process_vertex_early(v)
             yield v
             if v == s:
                 return
+            processed[v] = True
             for child in self._graph[v]:
+                if child not in processed or self.directed is True:
+                    self.process_edge(v, child)
                 if child not in visited:
                     queue.append(child)
                     visited[child] = True
+                    parent[child] = v
+
+            self.process_vertex_late(v)
+
+    def process_vertex_early(self, v):
+        print("process_vertex_early", v)
+
+    def process_edge(self, u, v):
+        print("process vertex {} -> {}".format(u, v))
+
+    def process_vertex_late(self, v):
+        print("process_vertex_late", v)
 
     def bfs_find_path(self, start, end):
         queue = deque([start])
