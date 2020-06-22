@@ -31,15 +31,16 @@ class Graph:
             return True
 
     def edge_classification(self, u, v):
-        parent = self.parent[u]
-        while parent is not None:
-            if v == parent:
-                return EdgeType.BACKEDGE
-            parent = self.parent[parent]
-        if v in self.discovered:
-            return EdgeType.CROSSEDGE
-        else:
-            return EdgeType.FRONTEDGE
+        # the idea is that in a dag the entry times to nodes higher in the
+        # execution tree will have entry times before the dags lower in the
+        # tree. so if this is not matching that means that there is a ancestor
+        # here.
+        v_entry_time = self.entry_time.get(v, None)
+        if v_entry_time:
+            u_entry_time = self.entry_time.get(u, None)
+            if u_entry_time:
+                if v_entry_time < u_entry_time:
+                    return EdgeType.BACKEDGE
 
     def process_vertex_early(self, vertex):
         print("process_vertex_early", vertex)
