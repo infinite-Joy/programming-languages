@@ -69,9 +69,16 @@ class Graph:
         return shortest_path
 
 
-g = Graph("ACTGAAAG")
-g.explore_children_space(g._root, 1)
-print(g._graph)
-print(g.get_difference("AGTGAAAA"))
-#print(g.bfs())
-print(g.find_shortest_path())
+def steady_gene(gene):
+    g = Graph(gene)
+    g.explore_children_space(g._root, 1)
+    print(g._graph)
+    print(g.get_difference(gene))
+    #print(g.bfs())
+    sp = g.find_shortest_path()
+    print(sp)
+    return len(sp) - 1
+
+
+print(steady_gene("ACTGAAAG"))
+print(steady_gene("TGATGCCGTCCCCTCAACTTGAGTGCTCCTAATGCGTTGC"))
