@@ -8,7 +8,7 @@ class EdgeType(Enum):
     CROSSEDGE = 2
 
 
-class Graph:
+class DAGGraph:
 
     def __init__(self, root=None, directed=None):
         self._graph = defaultdict(list)
@@ -87,7 +87,7 @@ class Graph:
 
 # Driver code
 print("valid DAG")
-g = Graph(0, directed=True)
+g = DAGGraph(0, directed=True)
 g.add_edge(0, 1, 2)
 g.add_edge(1, 3)
 g.add_edge(2, 4)
@@ -111,7 +111,7 @@ topological_sorting = [str(x) for x in reversed(g.topological_sorting)]
 print("topological_sortin: {}".format(" -> ".join(topological_sorting)))
 
 print("invalid DAG")
-g = Graph(0, directed=True)
+g = DAGGraph(0, directed=True)
 g.add_edge(0, 1, 2)
 g.add_edge(1, 3)
 g.add_edge(2, 1)
