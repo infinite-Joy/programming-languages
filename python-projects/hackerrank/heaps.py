@@ -96,8 +96,8 @@ class MinIntHeap:
             smaller_child_index = self.get_left_child_index(index)
             if self.has_right_child(index):
                 right_child = self.get_right_child(index)
-                if right_child < smaller_child_index:
-                    smaller_child_index = right_child
+                if right_child < self.get_left_child(index):
+                    smaller_child_index = self.get_right_child_index(index)
             if self._items[index] >= self._items[smaller_child_index]:
                 self.swap(index, smaller_child_index)
                 index = smaller_child_index
@@ -115,5 +115,7 @@ heap = MinIntHeap()
 heap = reduce(lambda h, x: h.add(x), arr, heap)
 print(heap._items)
 
-while heap._items:
-    print(heap.poll())
+print("finding the kth smallest element")
+for i in range(7):
+    kth_smallest = heap.poll()
+print(kth_smallest)
