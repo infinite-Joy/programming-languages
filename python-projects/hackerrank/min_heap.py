@@ -1,11 +1,8 @@
 class MinIntHeap:
 
-    def __init__(self):
+    def __init__(self, size):
         self._items = []
-
-    @property
-    def size(self):
-        return len(self._items)
+        self.size = 0
 
     def get_left_child_index(self, parent_index):
         return 2 * parent_index + 1
@@ -65,10 +62,12 @@ class MinIntHeap:
     def poll(self):
         self.raise_error_if_no_elements()
         last_elem = self._items.pop()
+        self.size -= 1
 
         # if there is only one element then the operation is simple.
-        if self.size == 0:
-            return last_elem
+        if self.size == 1:
+            return
+
         # make the last element the first element
         first_elem = self._items[0]
         self._items[0] = last_elem
@@ -76,8 +75,19 @@ class MinIntHeap:
         self.heapify_down()
         return first_elem
 
+    def inplace_sort(self):
+        self.raise_error_if_no_elements()
+        while self.size > 1:
+            # swap the first and last element in place
+            self._items[0], self._items[self.size-1] = self._items[self.size-1], self._items[0]
+            # our heap has not reduced, plus this is not a valid heap
+            self.size -= 1
+            # so we heapify it
+            self.heapify_down()
+
     def add(self, item):
         self._items.append(item)
+        self.size += 1
         if self.size > 1:
             self.heapify_up()
         return self
@@ -105,13 +115,13 @@ class MinIntHeap:
                 return
 
 
-from random import shuffle
+from random import shuffle, randint
 from functools import reduce
 
 arr = list(range(15))
 shuffle(arr)
 print("shuffled arr", arr)
-heap = MinIntHeap()
+heap = MinIntHeap(15)
 heap = reduce(lambda h, x: h.add(x), arr, heap)
 print(heap._items)
 
@@ -119,3 +129,15 @@ print("finding the kth smallest element")
 for i in range(7):
     kth_smallest = heap.poll()
 print(kth_smallest)
+
+print("# performing inplace sort")
+for _ in range(100000):
+    arr = [randint(0,10000) for i in range(10000000)]
+    shuffle(arr)
+    i = len(arr)
+    #print("shuffled arr", arr)
+    heap = MinIntHeap(i)
+    heap = reduce(lambda h, x: h.add(x), arr, heap)
+    heap.inplace_sort()
+    sorted_arr = heap._items
+    assert sorted_arr == sorted(arr), arr
