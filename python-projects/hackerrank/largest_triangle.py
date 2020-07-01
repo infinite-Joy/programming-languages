@@ -11,7 +11,7 @@ def get_left_right_val_forward(hs, n, i, height):
     right = n + i + 1
     left = n + i
     if right<len(hs):
-        if hs[n+i+1] > hs[n+i]:
+        if hs[n+i+1] >= hs[n+i]:
             height += hs[n]
             return height
 
@@ -19,11 +19,12 @@ def get_left_right_val_backward(hs, n, i, height):
     left = n - i - 1
     right = n - i
     if left >= 0:
-        if hs[left] > hs[right]:
+        if hs[left] >= hs[right]:
             height += hs[n]
             return height
 
 def get_greatest_height(hs, n, curr_max):
+    #__import__('pudb').set_trace()
     if n == 0:
         return curr_max
 
@@ -42,7 +43,7 @@ def get_greatest_height(hs, n, curr_max):
     _height = get_left_right_val_backward(hs, n, i, height)
     while _height is not None:
         height = _height
-        i -= 1
+        i += 1
         _height = get_left_right_val_backward(hs, n, i, _height)
 
     # get the running max
@@ -51,6 +52,9 @@ def get_greatest_height(hs, n, curr_max):
     return get_greatest_height(hs, n-1, curr_max)
 
 hs = [3,2,3]
+print(get_greatest_height(hs, len(hs)-1, 0))
+
+hs = [11,11,10,10,10]
 print(get_greatest_height(hs, len(hs)-1, 0))
 
 
