@@ -7,21 +7,32 @@ one way is to for each building go left and right as long as the building is gre
 once you  have computed for all the buildings you can get the maximum
 """
 
+from collections import defaultdict
+
+forwards_higher = defaultdict(list)
+backwards_higher = defaultdict(list)
+
 def get_left_right_val_forward(hs, n, i, height):
     right = n + i + 1
     left = n + i
     if right<len(hs):
-        if hs[n+i+1] >= hs[n+i]:
+        if hs[n+i+1] >= hs[n]:
+            forwards_higher[n].append(right)
             height += hs[n]
             return height
+        else:
+            backwards_higher[right].append(n)
 
 def get_left_right_val_backward(hs, n, i, height):
     left = n - i - 1
     right = n - i
     if left >= 0:
-        if hs[left] >= hs[right]:
+        if hs[left] >= hs[n]:
+            backwards_higher[n].append(left)
             height += hs[n]
             return height
+        else:
+            forwards_higher[left].append(n)
 
 def get_greatest_height(hs, n, curr_max):
     #__import__('pudb').set_trace()
@@ -51,11 +62,18 @@ def get_greatest_height(hs, n, curr_max):
 
     return get_greatest_height(hs, n-1, curr_max)
 
+
 hs = [3,2,3]
 print(get_greatest_height(hs, len(hs)-1, 0))
+print(forwards_higher, backwards_higher)
+print("%"* 10)
 
 hs = [11,11,10,10,10]
 print(get_greatest_height(hs, len(hs)-1, 0))
+print(forwards_higher, backwards_higher)
+print("%"* 10)
 
-
-
+hs = [1,2,3,4,5]
+print(get_greatest_height(hs, len(hs)-1, 0))
+print(forwards_higher, backwards_higher)
+print("%"* 10)
