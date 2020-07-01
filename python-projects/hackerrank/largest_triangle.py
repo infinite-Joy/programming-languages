@@ -9,33 +9,48 @@ once you  have computed for all the buildings you can get the maximum
 
 from collections import defaultdict
 
-forwards_higher = defaultdict(list)
-backwards_higher = defaultdict(list)
+higher = defaultdict(set)
 
 def get_left_right_val_forward(hs, n, i, height):
     right = n + i + 1
+    if right in higher[n]:
+        height += hs[n]
+        return height
     left = n + i
     if right<len(hs):
-        if hs[n+i+1] >= hs[n]:
-            forwards_higher[n].append(right)
+        if hs[right] > hs[n]:
+            higher[n].add(right)
+            height += hs[n]
+            return height
+        elif hs[right] == hs[n]:
+            higher[n].add(right)
+            higher[right].add(n)
             height += hs[n]
             return height
         else:
-            backwards_higher[right].append(n)
+            higher[right].add(n)
 
 def get_left_right_val_backward(hs, n, i, height):
+    #__import__('pudb').set_trace()
     left = n - i - 1
+    if left in higher[n]:
+        height += hs[n]
+        return height
     right = n - i
     if left >= 0:
-        if hs[left] >= hs[n]:
-            backwards_higher[n].append(left)
+        if hs[left] > hs[n]:
+            higher[n].add(left)
+            height += hs[n]
+            return height
+        if hs[left] == hs[n]:
+            higher[n].add(left)
+            higher[left].add(n)
             height += hs[n]
             return height
         else:
-            forwards_higher[left].append(n)
+            higher[left].add(n)
 
 def get_greatest_height(hs, n, curr_max):
-    #__import__('pudb').set_trace()
     if n == 0:
         return curr_max
 
@@ -57,23 +72,25 @@ def get_greatest_height(hs, n, curr_max):
         i += 1
         _height = get_left_right_val_backward(hs, n, i, _height)
 
+    #print('higher',higher)
+
     # get the running max
     curr_max = max(curr_max, height)
 
     return get_greatest_height(hs, n-1, curr_max)
 
 
-hs = [3,2,3]
-print(get_greatest_height(hs, len(hs)-1, 0))
-print(forwards_higher, backwards_higher)
-print("%"* 10)
+def main(hs):
+    #print(hs)
+    print(get_greatest_height(hs, len(hs)-1, 0))
+    #print(higher)
+    #print("%"* 10)
 
-hs = [11,11,10,10,10]
-print(get_greatest_height(hs, len(hs)-1, 0))
-print(forwards_higher, backwards_higher)
-print("%"* 10)
+higher = defaultdict(set)
+main([3,2,3])
 
-hs = [1,2,3,4,5]
-print(get_greatest_height(hs, len(hs)-1, 0))
-print(forwards_higher, backwards_higher)
-print("%"* 10)
+higher = defaultdict(set)
+main([11,11,10,10,10])
+
+higher = defaultdict(set)
+main([1,2,3,4,5])
