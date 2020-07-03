@@ -1,3 +1,4 @@
+# https://www.hackerrank.com/challenges/gridland-metro/forum
 from collections import defaultdict
 
 def count_set_bits(bits):
