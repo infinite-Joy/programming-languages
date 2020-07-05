@@ -10,17 +10,17 @@ class UnionFind:
 
     def __init__(self):
         # number of elements in this union find
-        size = 0
+        self.size = 0
 
         # used to track the sizes of each of the components
-        sz = []
+        self.sz = []
 
         # pointer[i] points to the parent of i, if id[i] == i then i is the root
         # node
-        pointer = []
+        self.pointer = []
 
         # tracks the number of components in the union find
-        num_components = 0
+        self.num_components = 0
 
 
 
