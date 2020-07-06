@@ -33,24 +33,42 @@ class UnionFind:
         cls.sz = [1 for _ in range(size)]
         cls.pointer = [i for i in range(size)]
 
-    def find(self, p):
+    def find(self, p, ids=None):
         """
         Find which component/set 'p' belongs to
         """
+        if ids is None:
+            ids = self.pointer
+
         # find the root of the component set
-        root = p
-        while root!=self.pointer[p]:
-            root = self.pointer[p]
+        if ids[p] == p:
+            return p
 
         # compress the path leading to the root
         # doing this operation is called path compression
         # and gives us amortized constant time operation
-        while p!=root:
-            next_p = self.pointer[p]
-            self.pointer[p] = root
-            p = next_p
+        ids[p] = self.find(ids[p], ids)
 
-        return root
+        return ids[p]
+
+    #def find(self, p):
+    #    """
+    #    Find which component/set 'p' belongs to
+    #    """
+    #    # find the root of the component set
+    #    root = p
+    #    while root!=self.pointer[p]:
+    #        root = self.pointer[p]
+
+    #    # compress the path leading to the root
+    #    # doing this operation is called path compression
+    #    # and gives us amortized constant time operation
+    #    while p!=root:
+    #        next_p = self.pointer[p]
+    #        self.pointer[p] = root
+    #        p = next_p
+
+    #    return root
 
     def connected(self, p, q):
         """
@@ -134,3 +152,13 @@ for x, y in edges1.items():
     u, v, w = edges[x[0]], edges[x[1]], y
     g.add_edge(u, v, w)
 g.krushkal()
+
+def find(p, ids):
+    if ids[p] == p:
+        return p
+    ids[p] = find(ids[p], ids)
+    return ids[p]
+
+ids = [0,0,1,2,3,4,5]
+print(find(5, ids))
+print(ids)
