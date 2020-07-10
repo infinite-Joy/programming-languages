@@ -97,6 +97,7 @@ class RedBlackTree:
         return inner_find(self.root)
 
     def _try_rebalance(self, node):
+        raise NotImplementedError("this needs to be completed")
         parent = node.parent
         value = node.value
         if (
