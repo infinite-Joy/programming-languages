@@ -9,37 +9,45 @@ we will compute the hash and then make the hash the key and then value the dicti
 
 """
 from functools import reduce
+import string
+
 class Codec:
+
     base_chars = string.digits + string.ascii_letters
     base = len(base_chars)
     hashes = {}
+
     def encode(self, longUrl: str) -> str:
         """Encodes a URL to a shortened URL."""
         full_url = longUrl.split("/")
         long_url = full_url[-1]
         long_url2 = [ord(ch) for ch in long_url]
         long_url1 = map(lambda x: x + 100, long_url2)
-        multiplied = reduce(lambda a, b: a * b, long_url1, 1)
-        total = sum(multiplied)
+        total = reduce(lambda a, b: a * b, long_url1, 1)
         hash_list = []
         for i in range(6):
-            hash  = total % base
-            total = (total - hash) // base
+            hash = total % self.base
+            total = (total - hash) // self.base
             hash_list.append(self.base_chars[hash])
-        hash_list = reversed(hashes)
-        this_hash = “”.join(hash_list)
+        hash_list = reversed(hash_list)
+        this_hash = "".join(hash_list)
         self.hashes[this_hash] = long_url
-        return  “/”.join(full_url[:-1] + [this_hash])
+        return  "/".join(full_url[:-1] + [this_hash])
+
     def decode(self, shortUrl: str) -> str:
-            """Decodes a shortened URL to its original URL."""
+        """Decodes a shortened URL to its original URL."""
         full_url = shortUrl.split("/")
         hash = full_url[-1]
         url = self.hashes[hash]
         long_url = full_url[:-1] + [url]
-        return “/”.join(long_url)
+        return "/".join(long_url)
 
 
 # Your Codec object will be instantiated and called as such:
-# codec = Codec()
-# codec.decode(codec.encode(url))
+codec = Codec()
+url = "https://leetcode.com/problems/encode-and-decode-tinyurl"
+out = codec.encode(url)
+print(out)
+print(codec.decode(out))
+assert codec.decode(codec.encode(url)) == url
 
