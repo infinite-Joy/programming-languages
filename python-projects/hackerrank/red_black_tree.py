@@ -96,8 +96,58 @@ class RedBlackTree:
                 return inner_find(parent.right)
         return inner_find(self.root)
 
+    def _right_rotation(self, A, X, B, Y, C, to_recolor=None):
+        """
+        Doing a right rotation
+
+
+                 Y                            X
+               /- -\     right rotate ->    /- -\
+             X-     -C   <- left rotate   A-     -Y
+           /- -\                                /- -\
+         A-     -B                            B-     -C
+        """
+        X.left = A
+        X.right = Y
+        Y.left = B
+        Y.right = C
+
+        if to_recolor:
+            node = to_recolor
+            X.color = Shades.BLACK
+            node.color = Shades.RED
+            Y.color = Shades.RED
+
+    def _left_rotation(self, A, X, B, Y, C, to_recolor=None):
+        """
+        Doing a right rotation
+
+
+                 Y                            X
+               /- -\     right rotate ->    /- -\
+             X-     -C   <- left rotate   A-     -Y
+           /- -\                                /- -\
+         A-     -B                            B-     -C
+        """
+        Y.left = X
+        Y.right = C
+        X.left = A
+        X.right = B
+
+        if to_recolor:
+            node = to_recolor
+            Y.color = Shades.BLACK
+            node.color = Shades.RED
+            X.color = Shades.RED
+
+    def _recolor(node):
+        node.right.color = Shades.BLACK
+        node.left.color = Shades.BLACK
+        if node != self.root:
+            node.color = Shades.RED
+        self._try_rebalance(node)
+
     def _try_rebalance(self, node):
-        raise NotImplementedError("this needs to be completed")
         parent = node.parent
         value = node.value
         if (
@@ -106,6 +156,31 @@ class RedBlackTree:
             or (node.color is not Shades.RED or parent.color is not Shades.RED)
         ): # no need to rebalance
             return
+
+        grandfather = parent.parent
+        node_direction = 'L' if node.value < parent.value else 'R'
+        parent_direction = 'L' if parent == grandfather.left else 'R'
+        uncle = grandfather.right if node_direction == 'L' else grandfather.left
+        general_direction = parent_direction + node_direction
+
+        # hard case is that the uncle is black
+        if uncle == self.NIL_LEAF or uncle.color == Shades.BLACK:
+            # rotate
+            if general_direction == 'LL':
+                self._right_rotation(node, parent.right, parent, grandfather, uncle, to_recolor=node)
+            elif general_direction == 'RR':
+                self._left_rotation(uncle, grandfather, parent.left, parent, node, to_recolor=node)
+            elif general_direction == 'LR':
+                raise NotImplementedError("this needs to be completed")
+            elif general_direction == 'RL':
+                raise NotImplementedError("this needs to be completed")
+            else:
+                raise ValueError("Not a valid direction: {}".format(general_direction))
+        else:
+            # easy case is that the uncle is red
+            # recolor the nodes
+            self._recolor(grandfather)
+
 
     def add(self, value):
         # if there is nothing in the tree then we just create the root node
