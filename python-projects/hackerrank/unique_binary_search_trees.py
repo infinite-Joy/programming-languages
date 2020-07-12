@@ -12,6 +12,11 @@ class TreeNode:
         self.right = right
         self.parent = parent
 
+    def __str__(self):
+        if self.val is None:
+            return None
+        return self.val
+
 class BST:
     def __init__(self):
         self.root = None
