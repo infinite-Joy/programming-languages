@@ -12,7 +12,7 @@ class Solution:
         if root is None:
             return True
 
-        if not lower_bound < root.val < upper_bound:
+        if not lower_bound <= root.val < upper_bound:
             return False
 
         if root.left is not None:
