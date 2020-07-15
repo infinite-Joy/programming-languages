@@ -9,6 +9,10 @@ what can be done is that people can be grouped if there are the same group size.
 so for all the new ids, try joining with one of the previous components. if am able to join then there its fine. else will create a new set out of this
 
 ===================================
+
+time complexity with path compression: O((m+n)(logn)) so there is an additional n component here for the forloop
+    this would be n2logn and for the amortised case it would be n2
+space complexity is O(n)
 """
 class UnionFind:
 

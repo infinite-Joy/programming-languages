@@ -4,6 +4,12 @@ a simple way would be to save the height as part of the queue as well and then s
 once we have the solution in place then build the nested array.
 keep a variable to get the height as well or the maximum height
 ===================================
+
+space complexity : O(V)
+time complexity: O(V)
+
+you dont need the E part of the general graph as you dont need to maintain the
+E component for the bfs and the dfs
 """
 from collections import deque
 
@@ -25,7 +31,6 @@ def process_vertex_early(level_order, node, h):
 def bfs(root):
     level_order = []
     queue = deque([(root, 1)])
-    height = 1
     while queue:
         node, h = queue.popleft()
         level_order = process_vertex_early(level_order, node, h)

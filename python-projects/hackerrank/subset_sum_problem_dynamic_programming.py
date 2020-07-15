@@ -1,5 +1,8 @@
 """
 Finding the subset problem using the knapsack algorithm and dynamic programmings
+
+time complexity: O(mn)
+space complexity: O(mn)
 """
 
 from pprint import pprint

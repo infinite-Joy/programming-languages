@@ -7,6 +7,9 @@ maybe using -
 start from the middle and to towards left if more than and to wards right  if  less than and then whenever you find the range between which you get the number you return the  index + 1
 ===========================
 
+time complexity: this is bst which means O(logn)
+space complexity: creating a different array O(n)
+
 """
 from itertools import accumulate
 class Solution:
