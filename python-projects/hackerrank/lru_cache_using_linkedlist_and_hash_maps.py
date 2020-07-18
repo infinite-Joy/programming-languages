@@ -56,9 +56,7 @@ class LRU:
             pass
 
         # if node is the end then nothing to do
-        if node == self.end:
-            print(self)
-            return node
+        if node == self.end: pass
         elif node == self.start: # node is the start
             self.start = self.start.next
             self.start.parent = None
@@ -79,8 +77,8 @@ class LRU:
             self.end = node
             self.end.next = None
 
-            print(self)
-            return node
+        print(self)
+        return node
 
     def put(self, k, v):
         # complexity O(1)
