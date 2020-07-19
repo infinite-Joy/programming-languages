@@ -33,6 +33,9 @@ def unmake_move(arr, k, data):
 
 
 def backtrack(arr: List[int], k: int, data: int):
+    """
+    Backtracking general algorithm as per skiena
+    """
     #print(arr, k, data)
     if is_a_solution(arr, k, data):
         process_solution(arr, k, data)
