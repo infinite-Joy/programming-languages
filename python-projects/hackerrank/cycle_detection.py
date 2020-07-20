@@ -29,19 +29,18 @@ class Graph:
             self.root = u
         self.g[u].append(v)
     def is_back_edge(self, u, v):
-        if self.discovered.get(v, False) is True and self.processed.get(v, False) is False:
+        if self.discovered.get(v, False) and not self.processed.get(v, False):
             return True
     def dfs(self, v=None):
-        print(v, self.g[v], self.root, self.discovered, self.processed)
+        #print(v, self.g[v], self.root, self.discovered, self.processed)
         if v is None:
             v = self.root
             self.discovered = {}
             self.processed = {}
         self.discovered[v] = True
         for child in self.g[v]:
-            __import__('pdb').set_trace()
+            #__import__('pdb').set_trace()
             if child not in self.discovered:
-                self.discovered[child] = True
                 if self.is_back_edge(v, child) is True:
                     self.cycle = True
                 self.dfs(child)
@@ -60,5 +59,6 @@ def main(numCourses, prerequisites):
     graph.dfs()
     return not graph.cycle
 
-#print(main(2, [[1,0],[0,1]]))
+print(main(2, [[1,0],[0,1]]))
 print(main(2, [[1,0]]))
+print(main(4, [[2,0],[1,0],[3,1],[3,2],[1,3]]))
