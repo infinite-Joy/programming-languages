@@ -56,8 +56,15 @@ def main(numCourses, prerequisites):
     graph = Graph()
     for u, v in prerequisites:
         graph.add_edge(u, v)
-    graph.dfs()
-    return not graph.cycle
+    # although I am doing another forloop there is an implicit memoisation here
+    # as part of the visited graph. those nodes are not already discovered and
+    # processed and hence will be processed again
+    for i, _  in prerequisites:
+        #print('source', i)
+        graph.dfs(i)
+        if graph.cycle:
+            return False
+    return True
 
 print(main(2, [[1,0],[0,1]]))
 print(main(2, [[1,0]]))
