@@ -2,34 +2,41 @@ from pprint import pprint
 
 class UnionFind:
     def __init__(self, mat):
-        self.len_i = len(mat)
+        self.len_i = len(mat[0])
+
+        # to whom does this group belong to
         self.group = [i for i in range(len(mat)*len(mat[0]))]
+
+        # the size of the groups of the individual elements
         self.components = [1 for i in range(len(mat)*len(mat[0]))]
 
+        # group together the zeros
         initial_zero = None
-
         for i in range(len(mat)):
             for j in range(len(mat[0])):
                 if mat[i][j] == 0:
                     if initial_zero is None:
                         initial_zero = self.len_i*i+j
-                    self.group[self.len_i*i+j] = initial_zero
+                    else:
+                        #print(i, j, self.len_i*i+j)
+                        self.group[self.len_i*i+j] = initial_zero
+                        self.components[initial_zero] += 1
 
-        self.num_groups = sum([True if g>0 else False for g in self.group])
-        self.components[initial_zero] = 0
-        for i in self.group:
-            if i == 0:
-                self.components[initial_zero] += 1
+        # set groups count to non zeros
+        self.num_groups = sum([True if g!=initial_zero else False for g in self.group])
 
-        print(self.group)
-        print(self.components)
-        print(self.num_groups)
+        print('group', self.group)
+        print('components', self.components)
+        print('num_group', self.num_groups)
 
     def find(self, groups, i):
+        # i have reached the root node
         if groups[i] == i:
             return i
 
+        # path compression
         groups[i] = self.find(groups, groups[i])
+
         return groups[i]
 
     def union(self, p, q):
@@ -54,6 +61,16 @@ class UnionFind:
 
 
 def get_number_of_islands(binaryMatrix):
+
+    # edge case there is only one element
+    if len(binaryMatrix) == 1 and len(binaryMatrix[0]) == 1:
+        if binaryMatrix[0][0] == 1:
+            return 1
+        else:
+            return 0
+
+
+    # main algo
     uf = UnionFind(binaryMatrix)
 
     for i in range(len(binaryMatrix)):
@@ -81,11 +98,19 @@ def get_number_of_islands(binaryMatrix):
     return uf.num_groups
 
 
-binaryMatrix = [ [0,    1,    0,    1,    0],
-                         [0,    0,    1,    1,    1],
-                         [1,    0,    0,    1,    0],
-                         [0,    1,    1,    0,    0],
-                         [1,    0,    1,    0,    1] ]
+#binaryMatrix = [ [0,    1,    0,    1,    0],
+#                         [0,    0,    1,    1,    1],
+#                         [1,    0,    0,    1,    0],
+#                         [0,    1,    1,    0,    0],
+#                         [1,    0,    1,    0,    1] ]
+
+binaryMatrix = [[1,0,1,0]]
+binaryMatrix = [
+    [1,0,1,0],
+    [0,1,1,1],
+    [0,0,1,0]
+]
+print('binaryMatrix')
 pprint(binaryMatrix)
 
 print(get_number_of_islands(binaryMatrix))
