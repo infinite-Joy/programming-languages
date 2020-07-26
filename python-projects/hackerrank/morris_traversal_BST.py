@@ -18,7 +18,7 @@ class Node:
 
 def find_predecessor(root):
     before = root.left
-    while before.right is not None and before.right.val < root.val:
+    while before.right is not None and before.right.val != root.val:
         before = before.right
     return before
 

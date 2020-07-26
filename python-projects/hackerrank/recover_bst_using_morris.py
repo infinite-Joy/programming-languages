@@ -35,7 +35,7 @@ class Solution:
 
     def find_predecessor(self, root):
         before = root.left
-        while before.right is not None and before.right.val < root.val:
+        while before.right is not None and before.right.val != root.val:
             before = before.right
         return before
 
@@ -58,8 +58,8 @@ class Solution:
                     predecessor.right = root
                     root = root.left
                 else:
-                    self.visit(root)
                     predecessor.right = None
+                    self.visit(root)
                     root = root.right
 
 def inorder(root):
