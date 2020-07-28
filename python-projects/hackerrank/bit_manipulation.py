@@ -1,11 +1,29 @@
 from inspect import currentframe, getframeinfo
 
-def modulus(large_num):
-    divisor = 1000007
+def modulus(large_num, divisor=1000007):
+    # If the divisor is a power of 2, you can take advantage of the binary
+    # representation of the integers to find the remainder quickly: remainder =
+    # dividend & (divisor - 1) /* for positive dividends */
     return large_num & (divisor-1)
 
 print(modulus(23456788999999))
 print(modulus(123))
+
+def modulo(X, Y):
+    assert X >= 0 and Y > 0
+    if X < Y:
+        return X
+    M = modulo (X, Y<<1)
+    if M >= Y:
+        M -= Y
+    return M
+
+print('modulo(10, 3)', modulo(10, 3))
+from random import randint
+for _ in range(1000):
+    a, b = randint(0, 1000), randint(1, 100)
+    assert a%b==modulo(a,b), "modulo({}, {})".format(a, b)
+    assert a%b == modulus(a,b), "modulo({}, {})".format(a, b)
 
 
 def swap_ints(a, b):

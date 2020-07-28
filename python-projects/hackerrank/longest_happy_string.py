@@ -17,43 +17,52 @@ space complexity is O(n)
 
 import heapq as q
 
-def add(occ, ele, solution):
+def add(occ, ele, builder):
   if occ<=-2:
-    solution += "{}{}".format(ele, ele)
+    builder += "{}{}".format(ele, ele)
     occ += 2
   elif occ==-1:
-    solution += "{}".format(ele)
+    builder += "{}".format(ele)
     occ += 1
-  return occ, solution
+  return occ, builder
 
 def longest_happy_string(abc):
   print(abc)
   i = 0
   queue = []
   for k, v in abc.items():
-    q.heappush(queue, (-v, i, k))
+    if v > 0:
+      q.heappush(queue, (-v, i, k))
     i += 1
   print(queue)
-  solution = ""
-  while len(queue)>0:
+  builder = ""
+  while len(queue)>1:
     import time; time.sleep(1)
-    print(queue, solution)
+    print(queue, builder)
     #__import__('pdb').set_trace()
+    #first time
     occu1, i, elem1 = q.heappop(queue)
-    occu1, solution = add(occu1, elem1, solution)
+    occu1, builder = add(occu1, elem1, builder)
 
-    if len(queue)==0 and occu1<0:
-      return solution
-
+    # second time
     occu2, j, elem2 = q.heappop(queue)
-    occu2, solution = add(occu2, elem2, solution)
+    occu2, builder = add(occu2, elem2, builder)
 
-    if occu2 < 0:
-      q.heappush(queue, (occu2, j, elem2))
     if occu1 < 0:
       q.heappush(queue, (occu1, i, elem1))
+    if occu2 < 0:
+      q.heappush(queue, (occu2, j, elem2))
 
-  return solution
+  if len(queue) > 0:
+    if builder[-1] == queue[0][2] and builder[-1] != builder[-2]:
+      builder += queue[0]
+    elif builder[-1] != queue[0][2]:
+      if queue[0][0] <= -2:
+        builder = builder + queue[0][2] + queue[0][2]
+      else:
+        builder = builder + queue[0][2]
+
+  return builder
 
 print(longest_happy_string(dict(a=1, b=1, c=7)))
 print("*"*20)
