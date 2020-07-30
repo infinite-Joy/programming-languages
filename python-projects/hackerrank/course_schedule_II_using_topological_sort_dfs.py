@@ -23,6 +23,7 @@ class Graph:
         self.processed = set()
         self.parent = OrderedDict()
         self.graph = None
+        self.sorted = []
     def create_graph(self, deps):
         graph = {k: [] for k in range(self.size)}
         for cour1, cour2 in deps:
@@ -33,6 +34,8 @@ class Graph:
             return Edge.BACK
         else:
             return Edge.OTHER
+    def process_vertex_late(self, v):
+        self.sorted.append(v)
     def dfs(self, source):
         #__import__('pdb').set_trace()
         self.visited.add(source)
@@ -47,34 +50,30 @@ class Graph:
             if child not in self.processed:
                 if self.edge_classification(source, child) == Edge.BACK:
                     return False
+        self.process_vertex_late(source)
         self.processed.add(source)
         return True
     def get_topological_sort(self):
-        nodes = []
-        done = set()
-        while self.parent:
-            node, parent = self.parent.popitem()
-            if parent not in done:
-                nodes.append(parent)
-                done.add(parent)
-            if node not in done:
-                nodes.append(node)
-                done.add(node)
-        return nodes
+        for v in range(self.size):
+            if v not in self.visited:
+                if self.dfs(v) is False:
+                    return []
+        return self.sorted[::-1]
 def main(size, pairs):
+    if pairs == []:
+        return [i for i in range(size)]
     g = Graph(size)
     g.create_graph(pairs)
-    #__import__('pdb').set_trace()
-    for i, j in pairs:
-        if j not in g.processed:
-            if g.dfs(j) is False:
-                return []
     return g.get_topological_sort()
 
-size = 2
-pairs = [[1,0]]
-print(main(2, pairs))
+#size = 2
+#pairs = [[1,0]]
+#print(main(2, pairs))
+#
+#size = 4
+#pairs = [[1,0],[2,0],[3,1],[3,2]]
+#print(main(size, pairs))
 
-size = 4
-pairs = [[1,0],[2,0],[3,1],[3,2]]
+size = 3
+pairs = [[1,0]]
 print(main(size, pairs))

@@ -44,8 +44,6 @@ class Graph:
         if height == 0:
             self.visited = set()
         self.visited.add((srow, scol))
-        if (srow, scol) in self.memo:
-            return height+1
         for nrowcol in self.get_next(srow, scol):
             # we dont need the check if nrowcol in visited as this is checked
             # implicitlt, there cannot be a cylce in this as the dfs would not
@@ -60,7 +58,7 @@ def main(matrix):
     g = Graph(matrix)
     for i in range(g.dim[0]):
         for j in range(g.dim[1]):
-            if (i, j) not in g.processed:
+            if (i, j) not in g.visited:
                 print('starting', i, j)
                 g.dfs(0, i, j)
                 print('#'*10)
