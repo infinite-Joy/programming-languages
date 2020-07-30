@@ -45,20 +45,23 @@ class Graph:
             self.visited = set()
         self.visited.add((srow, scol))
         for nrowcol in self.get_next(srow, scol):
+            self.max_depth = max(self.max_depth, height+1)
             # we dont need the check if nrowcol in visited as this is checked
             # implicitlt, there cannot be a cylce in this as the dfs would not
             # return to the source as source would always be less than all the
             # children
-            height = self.dfs(height+1, *nrowcol)
-            self.max_depth = max(self.max_depth, self.max_depth + height)
+            self.dfs(height+1, *nrowcol)
         self.processed.add((srow, scol))
-        return self.max_depth
 
 def main(matrix):
+    if matrix == []:
+        return 0
+    if matrix == [[]]:
+        return 0
     g = Graph(matrix)
     for i in range(g.dim[0]):
         for j in range(g.dim[1]):
-            if (i, j) not in g.visited:
+            if (i, j) not in g.processed:
                 print('starting', i, j)
                 g.dfs(0, i, j)
                 print('#'*10)
