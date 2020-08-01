@@ -35,6 +35,7 @@ class TreeNode:
 
 
 def generate(start, end):
+    print(start, end)
     if start > end:
         yield
     else:
@@ -54,6 +55,6 @@ def generate_trees(n):
     if n == 0:
         print([])
     for tree in generate(1, n):
-        print(tree)
+        pass
 
 generate_trees(4)
