@@ -34,27 +34,46 @@ class TreeNode:
                             self.preorder_traversal(root)))
 
 
-def generate(start, end):
-    print(start, end)
-    if start > end:
-        yield
+# memoised solution
+def generate(start, end, memo):
+    print(start, end, memo)
+    if (start, end) in memo:
+        return memo[(start, end)]
+    elif start > end:
+        return [None]
     else:
+        res = []
         for i in range(start, end+1):
-            lefttrees = generate(start, i-1)
-            righttrees = generate(i+1, end)
+            memo[(start, i-1)] = generate(start, i-1, memo)
+            lefttrees = memo[(start, i-1)]
+            memo[(i+1, end)] = generate(i+1, end, memo)
+            righttrees = memo[(start, i-1)]
 
             for lefttree in lefttrees:
                 for righttree in righttrees:
                     root = TreeNode(i)
                     root.left = lefttree
                     root.right = righttree
-                    yield root
+                    res.append(root)
+        memo[(start,end)] = res
+        return memo[(start,end)]
 
 
 def generate_trees(n):
     if n == 0:
         print([])
-    for tree in generate(1, n):
+    for tree in generate(1, n, {}):
         pass
 
 generate_trees(4)
+
+# dp solution
+def generate_trees_dp(n):
+    i = end
+    dp = [[] for x in range(1, n+1)]
+    dp[0] = None
+    for start in range(n, -1, -1): # this is the root
+        for s in range(n, start-1, -1):
+            node = TreeNode(s)
+            node.right =
+
