@@ -66,14 +66,63 @@ def generate_trees(n):
         pass
 
 generate_trees(4)
+print("%"*10)
 
 # dp solution
-def generate_trees_dp(n):
-    i = end
-    dp = [[] for x in range(1, n+1)]
-    dp[0] = None
-    for start in range(n, -1, -1): # this is the root
-        for s in range(n, start-1, -1):
-            node = TreeNode(s)
-            node.right =
 
+def copy_tree(root):
+    root1 = TreeNode(root.val)
+    if root.left is not None:
+        left1 = copy_tree(root.left)
+        root1.left = left1
+    if root.right is not None:
+        right1 = copy_tree(root.right)
+        root1.right = right1
+    return root1
+
+def get_val_node(root,val):
+    while root is not None:
+        if root.val == val:
+            return root
+        root = root.left
+
+def generate_trees(n):
+    if n <= 0:
+        return []
+    res = [None]
+    for num in range(n, -1, -1):
+        next_tree = []
+        for node in res:
+            # the spacial case when Node(n) is root of tree
+            root = TreeNode(num)
+            root.right = node
+            next_tree.append(root)
+
+            # while loop inserts every possible combination to the left tree
+            # side
+            while node is not None:
+                curr_root = TreeNode(root.right.val)
+
+                # clone left tree
+                curr_root.left = copy_tree(root.right.left)
+
+                # reusing - point new right to the original right subtree
+                curr_root.right = root.right.right
+
+                # curr is the cutoff whose right child will be replaced by the
+                # new n
+                curr = get_val_node(curr_root, node.val)
+
+                # place n as curr right child and make curr right child as the
+                # left child of n
+                tmp = curr.left
+                curr.left = TreeNode(num)
+                curr.left.right = tmp
+
+                next_tree.append(curr_root)
+                node = node.left
+
+        res = next_tree
+
+for tree in generate_trees(4):
+    print(tree)
