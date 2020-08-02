@@ -20,14 +20,20 @@ from typing import List
 class Solution:
     def getWinner(self, arr: List[int], k: int) -> int:
         i = 0
-        j = 0
+        j = 1
         winner = 0
-        while j < len(arr) and j - i <= k:
+
+    def getWinner(self, arr: List[int], k: int) -> int:
+        j = 1
+        winner = 0
+        count = 0
+        while j < len(arr) and count<k:
             # print(i, j, arr[i], arr[j])
-            if j > i:
-                if arr[j] >= arr[winner]:
-                    winner = j
-                    i += 1
+            if arr[j] >= arr[winner]:
+                winner = j
+                count = 1
+            else:
+                count += 1
             j += 1
         return arr[winner]
 
@@ -42,6 +48,27 @@ class Solution:
             if win == k:
                 return curr
         return curr
+
+    def getWinner(self, arr: List[int], k: int) -> int:
+        # prefix
+        j = 1
+        winner = None
+        count = 0
+        maxmax = -1000
+        while j < len(arr) and count<k:
+            # print(i, j, arr[i], arr[j])
+            if j > k:
+                curr_max = max(arr[j-k:j])
+
+                if curr_max != winner:
+                    winner = curr_max
+                    count = 1
+                else:
+                    count += 1
+            j += 1
+        if winner is None:
+            return max(arr)
+        return winner
 
 
 s = Solution()
