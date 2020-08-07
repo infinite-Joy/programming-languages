@@ -20,7 +20,7 @@ def swaps(arr, count, i, final, minval):
         for sec in range(first, len(arr)):
             if arr[first] > arr[sec]:
                 do(arr, first, sec)
-                print(first, sec, arr)
+                #print(first, sec, arr)
                 if arr == final:
                     #__import__('pdb').set_trace()
                     minval = min(count+1, minval)
@@ -37,3 +37,4 @@ def minimumSwaps(arr):
     return swaps(arr, 0, 0, done, math.inf)
 
 print(minimumSwaps( [7, 1, 3, 2, 4, 5, 6] ))
+print(minimumSwaps( [4,3,1,2] ))
