@@ -12,6 +12,9 @@ import sys
 # The function is expected to return an INTEGER.
 # The function accepts STRING s as parameter.
 #
+# this did not work till completion.
+# will work on this later.
+# https://www.hackerrank.com/test/61sq9qfa63d/questions/8g44d37p8os
 from itertools import combinations
 
 def anagramPairs(s):
