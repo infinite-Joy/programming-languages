@@ -32,6 +32,9 @@ print(countInversions(arr))
 arr = [8, 22, 7, 9, 31, 19, 5, 13]
 print(countInversions(arr))
 
+# this is the option 2
+# time complexity of doing the inversions in O(nlogn)
+
 # using merge sort. doing nlogn
 INVERSIONS = 0
 
@@ -77,3 +80,4 @@ print(countInversions_merge_sort(arr))
 
 arr = [8, 22, 7, 9, 31, 19, 5, 13]
 print(countInversions_merge_sort(arr))
+
