@@ -20,11 +20,8 @@ def countInversions(arr):
         prev = idx - 1
         if prev >= 0 and arr[idx] < arr[prev]:
             while prev >= 0 and arr[idx] < arr[prev]:
-                arr[idx], arr[prev] = arr[prev], arr[idx]
                 count += 1
-                idx -= 1
                 prev -= 1
-                print(arr)
     return count
 
 arr = [2,1,3,1,2]
