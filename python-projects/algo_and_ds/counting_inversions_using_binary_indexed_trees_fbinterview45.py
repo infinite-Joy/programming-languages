@@ -39,5 +39,9 @@ def inversion(arr):
 arr = [2,1,3,1,2]
 print(inversion(arr))
 
-#arr = [8, 22, 7, 9, 31, 19, 5, 13]
-#print(countInversions_merge_sort(arr))
+arr = [8, 22, 7, 9, 31, 19, 5, 13]
+print(inversion(arr))
+
+# this will not handle negative numbers and hence to convert the array you will
+# need to convert this to the index of the elements and then sort it based on
+# the index and then you will find the inversions
