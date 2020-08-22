@@ -25,10 +25,10 @@ def find_right(nums, target):
             import time; time.sleep(0.5)
             print(low, high)
             if low == high or low + 1 == high:
-                if nums[low] == target:
-                    return low
                 if nums[high] == target:
                     return high
+                if nums[low] == target:
+                    return low
                 else:
                     return -1
             mid = (low + high) // 2
@@ -62,6 +62,10 @@ print(s.searchRange(nums, target))
 
 nums = [5,7,7,8,8,10]
 target = 6
+print(s.searchRange(nums, target))
+
+nums = [2, 2]
+target = 2
 print(s.searchRange(nums, target))
 
 
