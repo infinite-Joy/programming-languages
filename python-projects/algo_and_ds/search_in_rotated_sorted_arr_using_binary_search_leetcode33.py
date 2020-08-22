@@ -33,14 +33,17 @@ do binary search within that range
 
 from typing import List
 
-def bin_search_pivot(arr, left, right):
-    if left == right:
-        return left
-    mid = (left+right) // 2
-    if arr[left] >= arr[mid]:
-        return bin_search_pivot(arr, left, mid)
-    else:
-        return bin_search_pivot(arr, mid, right)
+def bin_search_pivot(arr):
+    left = 0
+    right = len(arr) - 1
+
+    while left < right:
+        mid = (left+right) // 2
+        if arr[mid] > arr[right]:
+            left = mid + 1
+        else:
+            right = mid
+    return left
 
 def bin_search(arr, low, high, target):
     if low == high:
@@ -48,11 +51,15 @@ def bin_search(arr, low, high, target):
             return low
         else:
             return -1
-    mid = (low+high) // 2
-    if target <= arr[mid]:
-        return bin_search(arr, low, mid, target)
-    else:
-        return bin_search(arr, mid+1, high, target)
+
+    while low <= high:
+        mid = (low+high) // 2
+        if target <= arr[mid]:
+            high = mid
+        else:
+            low = mid
+
+    return low
 
 
 class Solution:
@@ -65,9 +72,13 @@ class Solution:
             else:
                 return -1
 
-        pivot = bin_search_pivot(nums, 0, len(nums)-1)
-        maxval = nums[pivot]
-        minval = nums[pivot+1]
+        # is the index of the smallest value and also the number of places
+        # rotated.
+        pivot = bin_search_pivot(nums)
+
+        print('pivot', pivot)
+        maxval = nums[pivot-1]
+        minval = nums[(pivot+1)%len(nums)]
 
         # if target is outside the range
         if target < minval or target > maxval:
@@ -75,10 +86,10 @@ class Solution:
 
         if target >= nums[0]:
             # target is in the left part
-            return bin_search(nums, 0, pivot, target)
+            return bin_search(nums, 0, pivot-1, target)
         else:
             # target is in the right part
-            return bin_search(nums, pivot+1, len(nums)-1, target)
+            return bin_search(nums, pivot, len(nums)-1, target)
 
 
 s = Solution()
@@ -92,4 +103,8 @@ print(s.search(nums, target))
 
 nums = [1]
 target = 0
+print(s.search(nums, target))
+
+nums = [1, 3]
+target = 1
 print(s.search(nums, target))
