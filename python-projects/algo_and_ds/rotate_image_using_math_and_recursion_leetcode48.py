@@ -30,6 +30,10 @@ complexity is O(n*m)
 from typing import List
 
 def cell_rotation_dfs(matrix, startrow, startcol, row, col):
+    """
+    This is kind of dfs.
+    DO the swapping with the next cell and then jump to the next cell after that
+    """
     if row == startrow and col == startcol:
         return
 
@@ -38,10 +42,14 @@ def cell_rotation_dfs(matrix, startrow, startcol, row, col):
     cell_rotation_dfs(matrix, startrow, startcol, col, len(matrix) - row - 1)
 
 def do_cell_rotation(matrix, leftupper_row, leftupper_col, rightlower_row, rightlower_col):
+    """
+    Do the cell rotation for all the cells in the row"""
     for col in range(leftupper_col, rightlower_col):
         cell_rotation_dfs(matrix, leftupper_row, col, col, len(matrix) - leftupper_row - 1)
 
 def iterate_on_layer(matrix, leftupper_row, leftupper_col, rightlower_row, rightlower_col):
+    """
+    iterate on current layer and then go to the next inner layer"""
     if leftupper_row >= rightlower_row or leftupper_col >= rightlower_col:
         return
     #print(leftupper_row, leftupper_col, rightlower_row, rightlower_col)
