@@ -1,0 +1,32 @@
+"""
+ facebook-interview-questions
+0
+of 0 votes
+6
+Answers
+
+Implement binary addition of two strings.
+For example "101101" and "111101" equal "1101010"
+You cannot use any type conversion, operate only with strings.
+"""
+
+mapping = {
+  '00': '00',
+  '01': '01',
+  '10': '01',
+  '11': '10'
+}
+
+def add(string1, string2):
+  sol = []
+  i = len(string1) - 1
+  j = len(string2) - 1
+  comb = '0'
+  while i >= 0 and j >= 0:
+    comb = string1[i] + string2[j]
+    sum = mapping[comb]
+    carry, sum = mapping[sum+carry]
+    carry = mapping[sum,]
+
+  
+  
