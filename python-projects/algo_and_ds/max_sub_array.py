@@ -1,7 +1,7 @@
 """
 Using dynamic prpgramming
 
-Kadane algo https://www.youtube.com/watch?time_continue=596&v=86CQq3pKSUw&feature=emb_logo
+kadane algo https://www.youtube.com/watch?time_continue=596&v=86CQq3pKSUw&feature=emb_logo
 
 complexity: O(n)
 """
