@@ -60,6 +60,3 @@ def range_min_query(segmenttree: List[int], query_low: int, query_high: int, low
 
 range_min = range_min_query(segmenttree, 1, 3, 0, len(arr)-1, 0)
 print(range_min)
-
-
-
