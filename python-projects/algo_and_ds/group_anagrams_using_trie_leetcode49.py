@@ -45,7 +45,6 @@ class Trie:
 
 class Solution:
     def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
-        print(strs)
         if len(strs) <= 1: return [strs]
 
         strings = strs
@@ -54,7 +53,12 @@ class Solution:
         trie = Trie()
 
         for idx, string in enumerate(strings):
-            trie.insert(string, groups, idx)
+            if string == "":
+                if "empty_string" not in groups:
+                    groups["empty_string"] = []
+                groups["empty_string"].append(idx)
+            else:
+                trie.insert(string, groups, idx)
             print(groups)
 
         return [[strs[i] for i in group] for base, group in groups.items()]
@@ -64,5 +68,35 @@ class Solution:
 # test case
 
 strs = ["eat","tea","tan","ate","nat","bat"]
+s = Solution()
+#print(s.groupAnagrams(strs))
+
+strs = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+s = Solution()
+print(s.groupAnagrams(strs))
+
+
+# a simpler solution can probably be done using hashmaps
+
+# put the strings into the  hashmap and just see if the they are the same
+
+
+from collections import defaultdict
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        if len(strs) <= 1: return [strs]
+
+        strings = strs
+        strings = ["".join(sorted(s)) for s in strings]
+        groups = defaultdict(list)
+
+        for idx, string in enumerate(strings):
+            if string == "":
+                groups["empty_string"].append(idx)
+            else:
+                groups[string].append(idx)
+        return [[strs[i] for i in group] for base, group in groups.items()]
+
+strs = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
 s = Solution()
 print(s.groupAnagrams(strs))
