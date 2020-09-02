@@ -63,17 +63,18 @@ class Solution:
             hashmap[item].append(i)
         return hashmap
     def isSubsequence(self, s: str, t: str) -> bool:
-        #print(s, t)
+        print(s, t)
         hashmap = self.preprocess(t)
-        #print(hashmap)
+        print(hashmap)
 
         found = 0
         for ch in s:
             if ch in hashmap:
                 idx = bisect_left(hashmap[ch], found)
+                print(idx)
                 if idx == len(hashmap[ch]):
                     return False
-                found = hashmap[ch][idx]
+                found = hashmap[ch][idx] + 1
             else:
                 return False
         return True
@@ -90,5 +91,10 @@ print(sol.isSubsequence(s, t))
 
 s = "axc"
 t = "ahbgdc"
+sol = Solution()
+print(sol.isSubsequence(s, t))
+
+s = "aaaaaa"
+t = "bbaaaa"
 sol = Solution()
 print(sol.isSubsequence(s, t))
