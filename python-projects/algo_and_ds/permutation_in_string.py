@@ -13,6 +13,8 @@ similar to the lowest substring and use a two pointer for that, similar to that
 
 worst time complexity is O(n*m)
 
+does not work yet
+
 """
 from collections import Counter
 class Solution:
