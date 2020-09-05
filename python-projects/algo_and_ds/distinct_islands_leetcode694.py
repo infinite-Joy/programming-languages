@@ -13,6 +13,8 @@ and then convert that to a string and store all the geometries
 
 that way we will know the distinct islands
 
+time complexity : O(rows * cols)
+
 """
 
 from collections import deque
@@ -24,7 +26,7 @@ class Solution:
 
         for deltarow, deltacol in zip(row_dir, row_col):
             nrow = row + deltarow
-            ncol = row + deltacol
+            ncol = col + deltacol
             if 0 <= nrow < len(grid) and 0 <= ncol < len(grid[0]):
                 if grid[nrow][ncol] == 1:
                     yield nrow, ncol
@@ -36,6 +38,7 @@ class Solution:
         while queue:
             row, col = queue.popleft()
             for nrow, ncol in self.next_cell(grid, row, col):
+                #print(row, col, nrow, ncol)
                 queue.append((nrow, ncol))
                 grid[nrow][ncol] = 0
                 island_hash[ncol] += 1
@@ -47,12 +50,20 @@ class Solution:
         for row in range(len(grid)):
             for col in range(len(grid[0])):
                 if grid[row][col] == 1:
+                    #print(np.matrix(arr))
+                    #print(row, col)
                     self.bfs(grid, row, col, islands)
                     print(islands)
         return len(islands)
 
 # test case
 arr = [[1,1,0,1,1], [1,0,0,0,0], [0,0,0,0,1], [1,1,0,1,1]]
+import numpy as np
+print(np.matrix(arr))
+sol = Solution()
+print(sol.numDistinctIslands(arr))
+
+arr = [[1,1,0,0,0],[1,1,0,0,0],[0,0,0,1,1],[0,0,0,1,1]]
 import numpy as np
 print(np.matrix(arr))
 sol = Solution()
