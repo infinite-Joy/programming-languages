@@ -29,7 +29,12 @@ sparse_a[1] = {0: -1, 2: 3}
 
 in the real world we should have in both the directions
 
+time complexity: O(number of valid elements)
+space complexity: O(number of valid elements)
+
 """
+
+from typing import List
 
 class SparseMatrix:
     def __init__(self, rowcol, colrow):
@@ -44,12 +49,16 @@ class SparseMatrix:
         for row in range(rows):
             for col in range(cols):
                 if dense_mat[row][col] != 0:
+                    if row not in rowcol:
+                        rowcol[row] = {}
                     rowcol[row][col] = dense_mat[row][col]
+                    if col not in colrow:
+                        colrow[col] = {}
                     colrow[col][row] = dense_mat[row][col]
         return cls(rowcol, colrow)
     @staticmethod
-    from to_dense(dim, rowcol):
-        mat = [[0 for _ in dim[0]] for _ in dim[1]]
+    def to_dense(dim, rowcol):
+        mat = [[0 for _ in range(dim[1])] for _ in range(dim[0])]
         for row in rowcol:
             for col in rowcol[row]:
                 mat[row][col] = rowcol[row][col]
@@ -58,21 +67,29 @@ class SparseMatrix:
         solrowcol = {}
         maxrow, maxcol = 0, 0
         maxrow = max(self.rowcol.keys())
-        maxcol = max(other.colrow.keys())
-        for row in self.rowcol.keys():
-            for col in self.rowcol[row1].keys():
-                if col in other.colrow:
-                    if row in other.colrow[col]:
-                        if row not in solrowcol:
-                            solrowcol[row] = {}
-                        solrowcol[row][col] = self.rowcol[row][col] * other.colrow[col][row]
+        maxcol = max(other.rowcol.keys())
+        for row1 in self.rowcol:
+            for col1 in self.rowcol[row1]:
+                # things get reversed in the other case
+                row2 = col1
+                col2 = row1
+                if row2 in other.rowcol and col2 in other.rowcol[row2]:
+                    if row1 not in solrowcol:
+                        solrowcol[row1] = {}
+                        if col2 not in solrowcol[row1]:
+                            solrowcol[row1][col2] = 0
+                    solrowcol[row1][col2] += self.rowcol[row1][col1] * other.rowcol[row2][col2]
+
         return (maxrow+1, maxcol+1), solrowcol
 
 class Solution:
     def multiply(self, A: List[List[int]], B: List[List[int]]) -> List[List[int]]:
         sparse_a = SparseMatrix.from_dense(A)
+        print(sparse_a.rowcol)
         sparse_b = SparseMatrix.from_dense(B)
+        print(sparse_b.colrow)
         dim, solrowcol = sparse_a.multiply(sparse_b)
+        print(dim, solrowcol)
         return SparseMatrix.to_dense(dim, solrowcol)
 
 # test cases
