@@ -91,3 +91,5 @@ arr[update_pos] = val
 update_tree(arr, segmenttree, 0, len(arr)-1, 0, 0)
 print(arr)
 print(segmenttree)
+range_min = range_min_query(segmenttree, 1, 3, 0, len(arr)-1, 0)
+print(range_min)
