@@ -16,7 +16,7 @@ def construct_tree(inputarr: List[int], segmenttree: List[int], low, high, pos):
     construct_tree(inputarr, segmenttree, low, mid, 2 * pos + 1)
     construct_tree(inputarr, segmenttree, mid+1, high, 2 * pos + 2)
 
-    # in this case min function is being implemented. You will implement the
+    # in this case min function is being implemented. you will implement the
     # function based on the need.
     segmenttree[pos] = min(segmenttree[2*pos+1], segmenttree[2*pos+2])
 
@@ -60,3 +60,34 @@ def range_min_query(segmenttree: List[int], query_low: int, query_high: int, low
 
 range_min = range_min_query(segmenttree, 1, 3, 0, len(arr)-1, 0)
 print(range_min)
+
+CALLS = 0
+
+def update_tree(inputarr: List[int], segmenttree: List[int], low, high, pos, update_pos):
+    global CALLS
+    CALLS += 1
+    print(CALLS)
+
+    if low == high == update_pos:
+        segmenttree[pos] = inputarr[update_pos]
+        print(segmenttree)
+        return
+
+    mid = (low + high) // 2
+    if update_pos <= mid:
+        update_tree(inputarr, segmenttree, low, mid, 2 * pos + 1, update_pos)
+    else:
+        update_tree(inputarr, segmenttree, mid+1, high, 2 * pos + 2, update_pos)
+
+    # in this case min function is being implemented. you will implement the
+    # function based on the need.
+    segmenttree[pos] = min(segmenttree[2*pos+1], segmenttree[2*pos+2])
+    print(segmenttree)
+
+print('segment tree before update', segmenttree)
+update_pos = 0
+val = -10
+arr[update_pos] = val
+update_tree(arr, segmenttree, 0, len(arr)-1, 0, 0)
+print(arr)
+print(segmenttree)
