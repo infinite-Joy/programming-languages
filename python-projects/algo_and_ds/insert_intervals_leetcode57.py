@@ -41,3 +41,6 @@ intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]]
 newInterval = [4,8]
 sol = Solution()
 print(sol.insert(intervals, newInterval))
+
+#  you can implement Binary search here as well but this will not reduce the
+#  time complexity.
