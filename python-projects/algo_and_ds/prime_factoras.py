@@ -26,5 +26,8 @@ def print_prime_factors(n):
                 n /= i
         i += 1
 
+    if n > 1:
+        print(int(n))
+
 print_prime_factors(450)
 print_prime_factors(84)
