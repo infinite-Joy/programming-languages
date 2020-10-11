@@ -27,3 +27,4 @@ def print_prime_factors(n):
         i += 1
 
 print_prime_factors(450)
+print_prime_factors(84)
