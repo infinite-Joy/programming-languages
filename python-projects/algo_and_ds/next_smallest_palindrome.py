@@ -27,6 +27,8 @@ backtracking did not work.
 
 here is the solution https://www.geeksforgeeks.org/given-a-number-find-next-smallest-palindrome-larger-than-this-number/
 
+explanation https://www.youtube.com/watch?v=hZcindWcYI4
+
 
 """
 
