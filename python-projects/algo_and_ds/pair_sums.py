@@ -5,6 +5,7 @@ pair sums
 https://www.facebookrecruiting.com/portal/coding_practice_question/?problem_id=840934449713537&c=1062635970997589&ppid=454615229006519&practice_plan=1
 
 Wed Apr 13 00:05:10 IST 2022
+Wed Apr 13 00:32:34 IST 2022
 
 can be done using map. where the mapping is between the indices
 
