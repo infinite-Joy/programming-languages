@@ -9,6 +9,8 @@ and the max heap for the smaller half
 
 the complexity of this operation is O(nlogn) while the percentage of getting each of the entries is O(1)
 
+https://stackoverflow.com/questions/10657503/find-running-median-from-a-stream-of-integers
+
 """
 
 from heapq import heappush, heappop, heapify, heapreplace
