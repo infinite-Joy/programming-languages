@@ -40,16 +40,35 @@ def hone_in(growthRates, left, right):
         else:
             right = mid
 
+from bisect import bisect_right, bisect_left
+
+
+def get_sum(growthRates, item):
+    print(item)
+    return sum([g ** (item) for g in growthRates])
+
 
 def getBillionUsersDay(growthRates):
     # Write your code here
     # return naive(growthRates)
     day_one_users = sum([g ** (1) for g in growthRates])
-    if day_one_users > 1_000_000_000:
+    if day_one_users > LIMIT:
         return 1
 
     left, right = get_bounds(growthRates)
-    return hone_in(growthRates, left, right)
+    # return hone_in(growthRates, left, right)
+    # only supporting from python3.10
+    # print(list(range(left, right+1)), LIMIT)
+    output = bisect_right(list(range(left, right+1)), LIMIT, key=lambda item: sum([g ** (item) for g in growthRates]))
+    # print('output', output)
+    output = left + output
+    return output
+
+
+arr = [1,2,4,8,16]
+print(bisect_left(arr, 2.5) - 1)
+print(bisect_left(arr, 9) - 1)
+
 
     
 
