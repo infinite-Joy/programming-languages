@@ -11,29 +11,31 @@ do the sum of all the arraus in the aray. then keep on moving the pointer to the
 time complexity: O(nlogn)
 space complexity: O(1)
 
+sums are equal, hence the pivot is half.
+
+basd on quick select
+
 """
+
+def partition(arr, l, r):
+    pivot = int(sum(arr) / 2)
+    i = l
+    for j in range(l, r):
+        if arr[j] < pivot:
+            arr[i], arr[j] = arr[j], arr[i]
+            i += 1
+    return i
 
 
 def balancedSplitExists(arr):
     # Write your code here
-    arr.sort()
-    # print(arr)
-    left_sum = 0
-    right_sum = sum(arr)
-    for i, elem in enumerate(arr):
-        left_sum += elem
-        right_sum -= elem
-        # print(left_sum, right_sum)
-        if left_sum < right_sum:
-            pass
-        elif left_sum == right_sum:
-            if elem == arr[i+1]:
-                return False
-            else:
-                return True
-        else:
-            return False
+    p = partition(arr, 0, len(arr))
+    if not sum(arr[:p]) == sum(arr[p:]):
+        return False
+    if arr[p] > arr[p-1]:
+        return True
     return False
+
 
 
 # These are the tests we use to determine if the solution is correct.
