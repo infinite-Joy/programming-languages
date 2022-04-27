@@ -77,3 +77,7 @@ def get_median2(arr1, arr2):
 nums1 = [1,3]
 nums2 = [2]
 print(get_median2(nums1, nums2))
+
+nums1 = [1,2]
+nums2 = [3,4]
+print(get_median2(nums1, nums2))
