@@ -71,6 +71,34 @@ def sort(a):
 #arr = [1,3,5,7,9] + [2,4,6,8,10]
 #print(sort(arr))
 
+
+def merge(arr, start, mid, end):
+    left = start
+    right = mid + 1
+    pointer = start
+    while left <= mid and right < end:
+        left_val = arr[left]
+        right_val = arr[right]
+        if left_val <= right_val:
+            arr[pointer] = left_val
+            left += 1
+            pointer += 1
+        else:
+
+
+
+def sort(arr, start, end):
+    # base case
+    if len(arr) <= 1:
+        return arr
+
+    mid = start + int((end-start)/2)
+    sort(arr, start, mid)
+    sort(arr, mid+1, end)
+    merge(arr, start, mid, end)
+    return arr
+
+
 arr = "6 31415926535897932384626433832795 1 3 10 3 5"
 arr = [int(x) for x in arr.split()]
 print(sort(arr))
