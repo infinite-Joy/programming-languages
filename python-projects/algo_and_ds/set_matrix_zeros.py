@@ -31,3 +31,16 @@ class Solution:
                     matrix[r][c] = 0
                     
         return matrix
+
+
+def set_zeros(matrix):
+    for r in range(len(matrix)):
+        for c in range(len(matrix)):
+            if matrix[r][c] == 0:
+                matrix[r][0] = 0
+                matrix[0][c] = 0
+    for r in range(len(matrix)):
+        for c in range(len(matrix[0])):
+            if matrix[0][c] == 0 or matrix[r][0] == 0::
+                matrix[r][c] = 0
+    return matrix
