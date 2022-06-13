@@ -37,3 +37,6 @@ def find_arr(arr):
 
 arr = [2,3,1,9,7,6]
 print(find_arr(arr))
+
+arr = [1,3,2,9,7,6]
+print(find_arr(arr))
